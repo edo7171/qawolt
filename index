@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דשבורד מוגן | דומינו'ס</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+/* עיצוב למסך הכניסה בלבד */
+#auth-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #0D1117;
+    font-family: 'Heebo', sans-serif;
+}
+.login-card {
+    background: #161B22;
+    border: 1px solid #30363D;
+    padding: 40px;
+    border-radius: 20px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.login-card h2 { color: #E6EDF3; margin-bottom: 20px; }
+.login-card input {
+    width: 100%;
+    padding: 12px;
+    margin: 10px 0;
+    background: #0D1117;
+    border: 1px solid #30363D;
+    color: #E6EDF3;
+    border-radius: 8px;
+    outline: none;
+}
+.login-card input:focus { border-color: #009DE0; }
+.login-card button {
+    width: 100%;
+    padding: 12px;
+    background: #009DE0;
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+.login-card p { color: #DA3633; font-size: 13px; margin-top: 10px; }
+
+/* הסתרת התוכן המקורי כברירת מחדל */
+#protected-content { display: none; }
+</style>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D1117;--card:#161B22;--card2:#1C2128;--border:#30363D;
+  --blue:#009DE0;--green:#2EA043;--red:#DA3633;--purple:#8957E5;
+  --orange:#E3B341;--text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;
+  --blue-dim:rgba(0,157,224,0.15);--green-dim:rgba(46,160,67,0.15);
+  --red-dim:rgba(218,54,51,0.15);--purple-dim:rgba(137,87,229,0.15);
+  --orange-dim:rgba(227,179,65,0.15);
+}
+/* שאר ה-CSS המקורי שלך (המשך כאן כפי שהיה...) */
+/* ... (כל ה-CSS ששלחת לי) ... */
+</style>
+</head>
+
+<body>
+
+<div id="auth-wrapper">
+    <div class="login-card">
+        <div style="font-size: 50px; margin-bottom: 10px;">🍕</div>
+        <h2>כניסה למערכת</h2>
+        <input type="email" id="login-email" placeholder="אימייל">
+        <input type="password" id="login-pass" placeholder="סיסמה">
+        <button id="btn-login">התחברות</button>
+        <p id="auth-error"></p>
+    </div>
+</div>
+
+<div id="protected-content">
+    
+    <button onclick="handleLogout()" style="position:fixed; bottom:20px; left:20px; z-index:9999; padding:8px; border-radius:50%; background:var(--card); border:1px solid var(--border); cursor:pointer;">Logout 🔓</button>
+
+    <div id="landingScreen">
+      </div>
+    
+    </div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // הגדרות ה-Firebase שלך - החלף בפרטים מהקונסול
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth();
+
+    const authWrapper = document.getElementById('auth-wrapper');
+    const protectedContent = document.getElementById('protected-content');
+    const errorMsg = document.getElementById('auth-error');
+
+    // פונקציית התחברות
+    document.getElementById('btn-login').addEventListener('click', () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-pass').value;
+        
+        signInWithEmailAndPassword(auth, email, pass)
+            .catch(error => {
+                errorMsg.innerText = "גישה נדחתה: פרטים שגויים";
+            });
+    });
+
+    // מאזין למצב התחברות
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            authWrapper.style.display = 'none';
+            protectedContent.style.display = 'block';
+            // רק כאן אנחנו מריצים את ה-init המקורי של האפליקציה שלך
+            if (typeof init === 'function') init(); 
+        } else {
+            authWrapper.style.display = 'flex';
+            protectedContent.style.display = 'none';
+        }
+    });
+
+    // פונקציית התנתקות גלובלית
+    window.handleLogout = () => {
+        signOut(auth).then(() => {
+            window.location.reload();
+        });
+    };
+</script>
+
+<script>
+     // כאן תדביק את כל ה-JS המקורי ששלחת לי
+     
+    // ...
+</script>
+
+</body>
+</html>
