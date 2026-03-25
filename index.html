@@ -1,0 +1,4273 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>דשבורד הזמנות Wolt | דומינו'ס</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D1117;--card:#161B22;--card2:#1C2128;--border:#30363D;
+  --blue:#009DE0;--green:#2EA043;--red:#DA3633;--purple:#8957E5;
+  --orange:#E3B341;--text:#E6EDF3;--text2:#8B949E;--text3:#6E7681;
+  --blue-dim:rgba(0,157,224,0.15);--green-dim:rgba(46,160,67,0.15);
+  --red-dim:rgba(218,54,51,0.15);--purple-dim:rgba(137,87,229,0.15);
+  --orange-dim:rgba(227,179,65,0.15);
+}
+html,body{background:var(--bg);color:var(--text);font-family:'Heebo',sans-serif;font-size:14px;min-height:100vh}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:200;background:rgba(13,17,23,0.97);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.hdr-brand{display:flex;align-items:center;gap:10px}
+.hdr-brand .logo{font-size:26px}
+.hdr-brand h1{font-size:16px;font-weight:700}
+.hdr-brand small{font-size:11px;color:var(--text2);display:block;margin-top:-2px}
+.hdr-right{display:flex;align-items:center;gap:8px}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:8px;
+  font-size:12px;font-family:'Heebo',sans-serif;font-weight:600;cursor:pointer;border:1px solid;transition:all .2s}
+.btn-primary{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.btn-primary:hover{background:var(--blue);color:#fff}
+.btn-secondary{background:var(--card);border-color:var(--border);color:var(--text2)}
+.btn-secondary:hover{border-color:var(--orange);color:var(--orange)}
+.btn-danger{background:transparent;border-color:var(--border);color:var(--text3)}
+.btn-danger:hover{border-color:var(--red);color:var(--red)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--text3);transition:background .3s}
+.dot.on{background:var(--green)}
+
+/* LAYOUT */
+.main{padding:20px;max-width:1600px;margin:0 auto}
+.section-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+
+/* DATE NAV BAR */
+.date-nav{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:12px 18px;margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:10px}
+.date-nav-title{font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap}
+
+/* Quick preset buttons */
+.preset-btns{display:flex;gap:6px;flex-wrap:wrap}
+.preset-btn{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border);background:var(--card2);color:var(--text2);transition:all .2s;white-space:nowrap}
+.preset-btn:hover{border-color:var(--blue);color:var(--blue)}
+.preset-btn.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+
+/* Date picker inputs */
+.date-picker-wrap{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.date-picker-sep{color:var(--text3);font-size:12px}
+.dp-input{background:var(--card2);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:5px 10px;font-size:12px;font-family:'Heebo',sans-serif;
+  outline:none;transition:border .2s;cursor:pointer}
+.dp-input:focus,.dp-input:hover{border-color:var(--blue)}
+.dp-input::-webkit-calendar-picker-indicator{filter:invert(0.6) sepia(1) saturate(3) hue-rotate(190deg)}
+
+/* Range display badge */
+.range-badge{background:var(--blue-dim);border:1px solid rgba(0,157,224,.3);color:var(--blue);
+  font-size:11px;padding:3px 10px;border-radius:20px;white-space:nowrap}
+
+/* Compare section */
+.date-nav-sep{width:1px;background:var(--border);height:28px;align-self:stretch}
+.compare-section{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.compare-label{font-size:11px;color:var(--text2);white-space:nowrap}
+.compare-preset{padding:4px 10px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border);background:var(--card2);color:var(--text2);transition:all .2s;white-space:nowrap}
+.compare-preset:hover{border-color:var(--orange);color:var(--orange)}
+.compare-preset.active{background:var(--orange-dim);border-color:var(--orange);color:var(--orange)}
+
+/* ── Week Comparison Section ── */
+.wow-chart-section{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px;margin-bottom:14px}
+.wow-chart-header{display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.wow-chart-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+.wow-chart-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.wow-metric-tabs{display:flex;gap:6px}
+.wm-tab{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border);background:var(--card2);color:var(--text2);transition:all .2s}
+.wm-tab:hover{border-color:var(--blue);color:var(--blue)}
+.wm-tab.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue)}
+.wow-legend{display:flex;gap:14px;align-items:center}
+.wl-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:5px}
+.wl-label{font-size:11px;color:var(--text2)}
+
+/* Summary KPI row inside chart section */
+.wow-summary-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.wow-sum-card{background:var(--card2);border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;display:flex;align-items:center;gap:10px}
+.wow-sum-icon{font-size:22px}
+.wow-sum-label{font-size:11px;color:var(--text2);margin-bottom:2px}
+.wow-sum-values{display:flex;align-items:baseline;gap:6px}
+.wow-sum-curr{font-size:18px;font-weight:900}
+.wow-sum-prev{font-size:12px;color:var(--text3)}
+.wow-sum-chg{font-size:11px;font-weight:700;padding:2px 7px;border-radius:12px}
+.wow-sum-chg.up{background:var(--green-dim);color:var(--green)}
+.wow-sum-chg.down{background:var(--red-dim);color:var(--red)}
+.wow-sum-chg.flat{background:var(--card);color:var(--text3)}
+.wow-sum-chg.good-down{background:var(--green-dim);color:var(--green)}
+
+.wow-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wow-chart-wrap{position:relative;height:260px}
+.wow-chart-wrap.tall{height:300px}
+
+/* ── Week-Failure Summary Panels ── */
+.wf-panels{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+@media(max-width:800px){.wf-panels{grid-template-columns:1fr}}
+
+.wf-panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 18px}
+.wf-panel.highlight{border-color:rgba(0,157,224,.35)}
+
+.wf-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.wf-sub{font-size:11px;color:var(--text2);margin-bottom:14px}
+.wf-range-badge{font-size:10px;background:var(--blue-dim);color:var(--blue);
+  border:1px solid rgba(0,157,224,.25);border-radius:10px;padding:1px 8px;font-weight:600}
+
+/* KPI row inside panel */
+.wf-kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:0}
+.wf-kpi{background:var(--card2);border:1px solid var(--border);border-radius:10px;
+  padding:10px 12px;text-align:center}
+.wf-kpi .v{display:block;font-size:22px;font-weight:900;line-height:1.1}
+.wf-kpi .l{display:block;font-size:10px;color:var(--text2);margin-top:4px;line-height:1.3}
+.wf-kpi.blue .v{color:var(--blue)}
+.wf-kpi.red  .v{color:var(--red)}
+.wf-kpi.orange .v{color:var(--orange)}
+.wf-kpi.purple .v{color:var(--purple)}
+
+/* Panel B – overlap customers */
+.wf-overlap-num{font-size:48px;font-weight:900;color:var(--green);line-height:1;margin:8px 0 4px}
+.wf-overlap-label{font-size:12px;color:var(--text2);margin-bottom:12px}
+.wf-overlap-pct{font-size:11px;background:var(--green-dim);color:var(--green);
+  border:1px solid rgba(46,160,67,.25);border-radius:10px;padding:2px 10px;display:inline-block}
+.wf-expand-btn{background:transparent;border:1px solid var(--border);color:var(--text2);
+  border-radius:8px;padding:4px 12px;font-size:11px;font-family:'Heebo',sans-serif;
+  cursor:pointer;margin-top:10px;transition:all .2s}
+.wf-expand-btn:hover{border-color:var(--blue);color:var(--blue)}
+.wf-overlap-table{margin-top:10px;display:none}
+.wf-overlap-table.open{display:block}
+.wf-overlap-table table{width:100%;border-collapse:collapse;font-size:12px}
+.wf-overlap-table th{background:var(--card2);padding:6px 10px;text-align:right;
+  font-weight:600;color:var(--text2);border-bottom:1px solid var(--border)}
+.wf-overlap-table td{padding:5px 10px;border-bottom:1px solid rgba(48,54,61,.5);color:var(--text)}
+.wf-overlap-table tr:hover td{background:rgba(0,157,224,.05)}
+@media(max-width:900px){.wow-charts-grid{grid-template-columns:1fr}.wow-summary-row{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.wow-summary-row{grid-template-columns:1fr}}
+
+/* Chips – keep for legacy compat but hidden */
+.date-chips{display:none}
+.date-chip{display:none}
+
+/* GLOBAL FILTER BAR */
+.filter-bar{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:10px 18px;margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:10px;
+  transition:border-color .2s}
+.filter-bar.active{border-color:rgba(0,157,224,.4)}
+.fb-label{font-size:12px;font-weight:700;color:var(--text2);white-space:nowrap}
+.fb-select{background:var(--card2);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:5px 10px;font-size:12px;font-family:'Heebo',sans-serif;
+  outline:none;transition:border .2s;cursor:pointer}
+.fb-select:focus,.fb-select:hover{border-color:var(--blue)}
+.fb-reset{background:transparent;border:1px solid var(--border);color:var(--text3);
+  border-radius:8px;padding:5px 10px;font-size:12px;font-family:'Heebo',sans-serif;cursor:pointer;transition:all .2s}
+.fb-reset:hover{border-color:var(--red);color:var(--red)}
+.fb-badge{background:var(--blue-dim);border:1px solid rgba(0,157,224,.3);color:var(--blue);
+  font-size:11px;padding:3px 10px;border-radius:20px}
+.fb-count{font-size:11px;color:var(--text3);margin-right:auto}
+
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;
+  transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3)}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.kpi-card.blue::before{background:var(--blue)}.kpi-card.green::before{background:var(--green)}
+.kpi-card.red::before{background:var(--red)}.kpi-card.purple::before{background:var(--purple)}
+.kpi-card.orange::before{background:var(--orange)}
+.kpi-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.kpi-label{font-size:11px;color:var(--text2);font-weight:500}
+.kpi-icon{font-size:18px;opacity:.8}
+.kpi-value{font-size:26px;font-weight:900;line-height:1;margin-bottom:4px}
+.kpi-sub{font-size:11px;color:var(--text2)}
+.kpi-change{font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:3px;
+  padding:2px 7px;border-radius:20px;margin-top:5px}
+.kpi-change.up{background:var(--green-dim);color:var(--green)}
+.kpi-change.down{background:var(--red-dim);color:var(--red)}
+.kpi-change.flat{background:var(--card2);color:var(--text2)}
+.kpi-change.good-down{background:var(--green-dim);color:var(--green)}
+
+/* WoW BAR */
+.wow-bar{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:12px 18px;margin-bottom:14px;display:flex;align-items:center;flex-wrap:wrap;gap:14px}
+.wow-title{font-size:12px;font-weight:700;color:var(--text);flex-shrink:0}
+.wow-badge{background:rgba(227,179,65,.12);border:1px solid rgba(227,179,65,.3);color:var(--orange);
+  font-size:11px;padding:3px 10px;border-radius:20px;flex-shrink:0}
+.wow-items{display:flex;gap:18px;flex-wrap:wrap;margin-right:auto}
+.wow-item{display:flex;flex-direction:column;align-items:center;gap:1px}
+.wow-item .wlabel{font-size:10px;color:var(--text3)}
+.wow-item .wcurr{font-size:15px;font-weight:700}
+.wow-item .wprev{font-size:10px;color:var(--text2)}
+.wow-item .wchg{font-size:11px;font-weight:600}
+.wow-sep{width:1px;background:var(--border);height:36px}
+
+/* CHARTS */
+.charts-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.charts-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+.chart-card.full{grid-column:1/-1}
+.chart-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.chart-title{font-size:13px;font-weight:700}
+.chart-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.chart-wrap{position:relative;height:230px}
+.chart-wrap.tall{height:300px}
+.chart-wrap.short{height:170px}
+
+/* REJECTION */
+.rejection-section{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px;margin-bottom:12px}
+.rej-explain{background:rgba(218,54,51,.08);border:1px solid rgba(218,54,51,.2);
+  border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:var(--text2);line-height:1.6}
+.rej-explain strong{color:var(--text)}
+.rej-kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.rej-kpi{background:var(--card2);border-radius:8px;padding:10px;text-align:center}
+.rej-kpi .v{font-size:20px;font-weight:900;display:block}
+.rej-kpi .l{font-size:10px;color:var(--text2);display:block;margin-top:2px}
+.rej-kpi.red .v{color:var(--red)}.rej-kpi.orange .v{color:var(--orange)}
+.rej-kpi.green .v{color:var(--green)}.rej-kpi.blue .v{color:var(--blue)}
+
+/* TABLE */
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead{background:var(--card2)}
+th{padding:9px 11px;text-align:right;font-weight:600;color:var(--text2);
+  border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none}
+th:hover{color:var(--text)}
+td{padding:8px 11px;text-align:right;border-bottom:1px solid rgba(48,54,61,.5);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr.rejected-row td{background:rgba(218,54,51,.04)}
+tr.refunded-row td{background:rgba(137,87,229,.04)}
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;
+  font-size:11px;font-weight:600;white-space:nowrap}
+.badge.delivered{background:var(--green-dim);color:var(--green)}
+.badge.rejected{background:var(--red-dim);color:var(--red)}
+.badge.refunded{background:var(--purple-dim);color:var(--purple)}
+.badge.vip{background:var(--orange-dim);color:var(--orange)}
+.badge.repeat{background:var(--red-dim);color:var(--red)}
+.badge.normal{background:var(--green-dim);color:var(--green)}
+.badge.fail{background:var(--orange-dim);color:var(--orange)}
+
+/* LOCAL FILTERS (within tables) */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
+.filter-input{background:var(--card2);border:1px solid var(--border);color:var(--text);
+  border-radius:8px;padding:6px 10px;font-size:12px;font-family:'Heebo',sans-serif;outline:none;transition:border .2s}
+.filter-input:focus{border-color:var(--blue)}
+.filter-btn{background:var(--card2);border:1px solid var(--border);color:var(--text2);
+  border-radius:8px;padding:6px 12px;font-size:12px;font-family:'Heebo',sans-serif;cursor:pointer;transition:all .2s}
+.filter-btn.active,.filter-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+.ml-auto{margin-right:auto}
+.export-btn{background:var(--card2);border:1px solid var(--border);color:var(--text2);
+  border-radius:8px;padding:5px 12px;font-size:12px;font-family:'Heebo',sans-serif;cursor:pointer;transition:all .2s}
+.export-btn:hover{border-color:var(--green);color:var(--green)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:5px;margin-top:10px;justify-content:center}
+.pg-btn{background:var(--card2);border:1px solid var(--border);color:var(--text2);
+  border-radius:6px;padding:4px 9px;font-size:12px;cursor:pointer;transition:all .2s}
+.pg-btn:hover,.pg-btn.active{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
+.pg-btn:disabled{opacity:.3;cursor:default}
+
+/* INSIGHTS */
+.insights-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px}
+.insight-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;
+  display:flex;gap:9px;align-items:flex-start}
+.insight-icon{font-size:20px;flex-shrink:0}
+.insight-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px}
+.insight-text{font-size:11px;color:var(--text2);line-height:1.5}
+
+/* HEATMAP */
+.heatmap-wrap{overflow-x:auto}
+.heatmap{border-collapse:collapse;font-size:10px;min-width:700px}
+.heatmap th{padding:3px 5px;color:var(--text2);font-weight:500;text-align:center;white-space:nowrap}
+.heatmap th.branch-col{text-align:right;min-width:110px}
+.heatmap td{padding:0;text-align:center}
+.hm-cell{width:26px;height:22px;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:600;border-radius:3px;margin:1px;cursor:default}
+
+/* TREND */
+.trend-up{color:var(--green)}.trend-down{color:var(--red)}.trend-flat{color:var(--text2)}
+.progress-bar-fill{height:100%;border-radius:4px;background:var(--green);transition:width .5s}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;
+  align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:22px;max-width:700px;width:95%;max-height:82vh;overflow-y:auto}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.modal-title{font-size:14px;font-weight:700}
+.modal-close{background:var(--card2);border:1px solid var(--border);color:var(--text2);
+  border-radius:8px;padding:4px 10px;cursor:pointer;font-size:13px}
+.modal-close:hover{color:var(--text)}
+
+/* DATA MANAGER MODAL */
+.dm-day-row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;
+  border:1px solid var(--border);margin-bottom:6px;background:var(--card2)}
+.dm-day-row:hover{border-color:var(--border)}
+.dm-day-date{font-weight:700;font-size:13px;min-width:90px}
+.dm-day-count{font-size:12px;color:var(--text2);flex:1}
+.dm-day-del{background:transparent;border:1px solid var(--border);color:var(--text3);
+  border-radius:6px;padding:3px 9px;font-size:11px;cursor:pointer;transition:all .2s}
+.dm-day-del:hover{border-color:var(--red);color:var(--red)}
+.storage-bar-wrap{background:var(--card2);border-radius:4px;height:6px;overflow:hidden;margin:6px 0}
+.storage-bar-fill{height:100%;border-radius:4px;background:var(--blue);transition:width .5s}
+.storage-bar-fill.warn{background:var(--orange)}.storage-bar-fill.danger{background:var(--red)}
+
+/* LOADING */
+.loading-overlay{display:none;position:fixed;inset:0;background:rgba(13,17,23,.8);
+  z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.loading-overlay.show{display:flex}
+.spinner{width:38px;height:38px;border:3px solid var(--border);border-top-color:var(--blue);
+  border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TABS */
+.tabs{display:flex;gap:3px;background:var(--card2);border-radius:10px;padding:3px;margin-bottom:14px;width:fit-content}
+.tab-btn{padding:6px 14px;border-radius:7px;border:none;background:transparent;color:var(--text2);
+  font-family:'Heebo',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.tab-btn.active{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.tab-pane{display:none}.tab-pane.active{display:block}
+
+.mb12{margin-bottom:12px}.mb16{margin-bottom:16px}.mb20{margin-bottom:20px}
+.text-red{color:var(--red)}.text-green{color:var(--green)}.text-blue{color:var(--blue)}
+.text-orange{color:var(--orange)}.text-purple{color:var(--purple)}
+.fw700{font-weight:700}.fs11{font-size:11px;color:var(--text2)}
+
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(4,1fr)}.charts-3{grid-template-columns:1fr 1fr}.insights-grid{grid-template-columns:repeat(2,1fr)}.rej-kpis{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.charts-2,.charts-3{grid-template-columns:1fr}.kpi-value{font-size:20px}.insights-grid{grid-template-columns:1fr}.wow-items{flex-wrap:wrap}}
+
+/* ══════════════════════════════════
+   LANDING SCREEN
+═══════════════════════════════════ */
+#landingScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:40px;
+  transition:opacity .5s, visibility .5s;
+}
+#landingScreen.hidden{opacity:0;visibility:hidden;pointer-events:none;}
+
+.landing-logo{font-size:56px;text-align:center;margin-bottom:0;
+  animation:floatLogo 3s ease-in-out infinite;}
+@keyframes floatLogo{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.landing-title{font-size:30px;font-weight:900;text-align:center;color:var(--text);}
+.landing-subtitle{font-size:14px;color:var(--text2);text-align:center;margin-top:-30px;}
+
+.landing-cards{display:flex;gap:28px;flex-wrap:wrap;justify-content:center;}
+
+.landing-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:40px 48px;
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  cursor:pointer;
+  transition:all .3s;
+  min-width:240px;
+  text-decoration:none;
+  position:relative;
+  overflow:hidden;
+}
+.landing-card::before{
+  content:'';position:absolute;inset:0;opacity:0;
+  transition:opacity .3s;
+}
+.landing-card.orders::before{background:radial-gradient(circle at 50% 0%,rgba(0,157,224,.15),transparent 60%);}
+.landing-card.times::before{background:radial-gradient(circle at 50% 0%,rgba(46,160,67,.15),transparent 60%);}
+.landing-card:hover{transform:translateY(-6px);box-shadow:0 20px 50px rgba(0,0,0,.4);}
+.landing-card.orders:hover{border-color:var(--blue);}
+.landing-card.times:hover{border-color:var(--green);}
+.landing-card:hover::before{opacity:1;}
+
+.landing-card-icon{font-size:52px;}
+.landing-card-title{font-size:22px;font-weight:800;color:var(--text);}
+.landing-card-desc{font-size:13px;color:var(--text2);text-align:center;line-height:1.5;}
+.landing-card-badge{
+  padding:5px 16px;border-radius:20px;font-size:12px;font-weight:700;
+  margin-top:4px;
+}
+.landing-card.orders .landing-card-badge{background:var(--blue-dim);color:var(--blue);border:1px solid rgba(0,157,224,.3);}
+.landing-card.times  .landing-card-badge{background:var(--green-dim);color:var(--green);border:1px solid rgba(46,160,67,.3);}
+
+/* Back button (shown on sub-dashboards) */
+.back-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--card2);border:1px solid var(--border);color:var(--text2);
+  border-radius:10px;padding:6px 14px;font-size:12px;font-family:'Heebo',sans-serif;
+  font-weight:600;cursor:pointer;transition:all .2s;
+}
+.back-btn:hover{border-color:var(--blue);color:var(--blue);}
+
+/* Dashboard wrapper */
+#ordersApp, #timesApp{display:none;}
+#ordersApp.active, #timesApp.active{display:block;}
+
+/* ══════════════════════════════════
+   TIMES DASHBOARD  
+═══════════════════════════════════ */
+#timesApp header{position:sticky;top:0;z-index:200;background:rgba(13,17,23,0.97);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--border);
+  padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+
+.tm-kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;}
+@media(max-width:1100px){.tm-kpi-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.tm-kpi-grid{grid-template-columns:1fr 1fr;}}
+
+.tm-kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px;transition:transform .2s,box-shadow .2s;position:relative;overflow:hidden;}
+.tm-kpi-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.3);}
+.tm-kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0;}
+.tm-kpi-card.blue::before{background:var(--blue);}
+.tm-kpi-card.green::before{background:var(--green);}
+.tm-kpi-card.orange::before{background:var(--orange);}
+.tm-kpi-card.purple::before{background:var(--purple);}
+.tm-kpi-card.red::before{background:var(--red);}
+
+/* Time value display */
+.tm-time-val{font-size:26px;font-weight:900;line-height:1;}
+.tm-time-val.good{color:var(--green);}
+.tm-time-val.warn{color:var(--orange);}
+.tm-time-val.bad{color:var(--red);}
+
+/* Branch times table */
+.tm-branch-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);}
+.tm-table{width:100%;border-collapse:collapse;font-size:12px;}
+.tm-table thead{background:var(--card2);}
+.tm-table th{padding:9px 11px;text-align:right;font-weight:600;color:var(--text2);
+  border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;}
+.tm-table th:hover{color:var(--text);}
+.tm-table td{padding:8px 11px;text-align:right;border-bottom:1px solid rgba(48,54,61,.5);vertical-align:middle;}
+.tm-table tr:last-child td{border-bottom:none;}
+.tm-table tr:hover td{background:rgba(255,255,255,.02);}
+.tm-table tr.total-row td{background:rgba(0,157,224,.06);font-weight:700;border-top:2px solid rgba(0,157,224,.25);}
+
+/* Time pills */
+.time-pill{display:inline-flex;align-items:center;justify-content:center;
+  min-width:60px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;}
+.time-pill.good{background:var(--green-dim);color:var(--green);}
+.time-pill.warn{background:var(--orange-dim);color:var(--orange);}
+.time-pill.bad{background:var(--red-dim);color:var(--red);}
+.time-pill.neutral{background:var(--blue-dim);color:var(--blue);}
+
+/* Trend modes */
+.trend-mode-bar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.trend-mode-btn{padding:6px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border);background:var(--card2);color:var(--text2);transition:all .2s;}
+.trend-mode-btn:hover{border-color:var(--blue);color:var(--blue);}
+.trend-mode-btn.active{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);}
+
+.tm-chart-section{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px;margin-bottom:14px;}
+.tm-chart-title{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.tm-charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+@media(max-width:900px){.tm-charts-grid{grid-template-columns:1fr;}}
+.tm-chart-wrap{position:relative;height:260px;}
+.tm-chart-wrap.tall{height:320px;}
+
+/* Monthly cumulative */
+.monthly-section{background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:18px;margin-bottom:14px;}
+.monthly-month-select{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.month-btn{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;
+  border:1px solid var(--border);background:var(--card2);color:var(--text2);transition:all .2s;}
+.month-btn:hover{border-color:var(--orange);color:var(--orange);}
+.month-btn.active{background:var(--orange-dim);border-color:var(--orange);color:var(--orange);}
+
+/* Insights times */
+.tm-insights-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:14px;}
+@media(max-width:1100px){.tm-insights-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:600px){.tm-insights-grid{grid-template-columns:1fr;}}
+
+.tm-insight-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:12px;display:flex;gap:9px;align-items:flex-start;}
+.tm-insight-icon{font-size:22px;flex-shrink:0;}
+.tm-insight-title{font-size:11px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.tm-insight-text{font-size:11px;color:var(--text2);line-height:1.5;}
+
+/* Comparison badge */
+.cmp-badge-pos{background:var(--green-dim);color:var(--green);border:1px solid rgba(46,160,67,.3);
+  font-size:11px;padding:2px 8px;border-radius:12px;font-weight:700;}
+.cmp-badge-neg{background:var(--red-dim);color:var(--red);border:1px solid rgba(218,54,51,.3);
+  font-size:11px;padding:2px 8px;border-radius:12px;font-weight:700;}
+.cmp-badge-flat{background:var(--card2);color:var(--text3);border:1px solid var(--border);
+  font-size:11px;padding:2px 8px;border-radius:12px;font-weight:700;}
+
+/* nodata */
+.nodata-msg{padding:40px;text-align:center;color:var(--text2);font-size:14px;}
+
+
+
+/* ═════════ FIREBASE AUTH ═════════ */
+body.auth-locked{overflow:hidden;}
+body.auth-locked #landingScreen,
+body.auth-locked #ordersApp,
+body.auth-locked #timesApp{
+  visibility:hidden;
+}
+
+.auth-overlay{
+  position:fixed;inset:0;z-index:5000;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;background:radial-gradient(circle at top, rgba(0,157,224,.12), transparent 35%), rgba(13,17,23,.96);
+}
+.auth-overlay.hidden{display:none;}
+.auth-card{
+  width:min(460px,100%);background:linear-gradient(180deg, rgba(28,33,40,.98), rgba(22,27,34,.98));
+  border:1px solid var(--border);border-radius:20px;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.45);
+}
+.auth-logo{width:68px;height:68px;border-radius:18px;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
+  background:linear-gradient(135deg, rgba(0,157,224,.22), rgba(137,87,229,.22));font-size:32px;border:1px solid var(--border)}
+.auth-title{text-align:center;font-size:26px;font-weight:900;margin-bottom:8px}
+.auth-subtitle{text-align:center;color:var(--text2);font-size:13px;line-height:1.6;margin-bottom:18px}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:18px}
+.auth-tab{border:1px solid var(--border);background:var(--card2);color:var(--text2);padding:11px 14px;border-radius:12px;font-weight:700;cursor:pointer;transition:.2s}
+.auth-tab.active{background:var(--blue-dim);border-color:var(--blue);color:var(--text)}
+.auth-form{display:none;gap:12px}
+.auth-form.active{display:grid}
+.auth-field{display:grid;gap:6px}
+.auth-field label{font-size:12px;color:var(--text2);font-weight:700}
+.auth-input{
+  width:100%;background:#0D1117;border:1px solid var(--border);color:var(--text);
+  border-radius:12px;padding:13px 14px;font-family:inherit;font-size:14px;outline:none;transition:.2s
+}
+.auth-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(0,157,224,.12)}
+.auth-submit,.auth-google-btn,.auth-link-btn{
+  border:none;border-radius:12px;padding:13px 14px;font-family:inherit;font-size:14px;font-weight:800;cursor:pointer;transition:.2s
+}
+.auth-submit{background:linear-gradient(135deg, var(--blue), #3ab8ef);color:white}
+.auth-submit:hover,.auth-google-btn:hover,.auth-link-btn:hover{transform:translateY(-1px)}
+.auth-google-btn{background:white;color:#111827;display:flex;align-items:center;justify-content:center;gap:10px;border:1px solid #d1d5db}
+.auth-google-icon{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:900}
+.auth-divider{display:flex;align-items:center;gap:10px;color:var(--text3);font-size:12px;margin:2px 0}
+.auth-divider:before,.auth-divider:after{content:'';height:1px;background:var(--border);flex:1}
+.auth-message{min-height:22px;font-size:12px;font-weight:700;line-height:1.5;color:var(--text2);margin-top:6px}
+.auth-message.error{color:#ff8a8a}
+.auth-message.success{color:#7ee787}
+.auth-note{margin-top:16px;background:rgba(0,157,224,.08);border:1px solid rgba(0,157,224,.18);border-radius:12px;padding:12px;color:var(--text2);font-size:12px;line-height:1.6}
+.auth-userbar{
+  position:fixed;top:14px;left:14px;z-index:4500;display:none;align-items:center;gap:10px;
+  background:rgba(22,27,34,.92);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:999px;padding:8px 10px;box-shadow:0 12px 30px rgba(0,0,0,.25)
+}
+.auth-userbar.visible{display:flex}
+.auth-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--purple));display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;overflow:hidden}
+.auth-avatar img{width:100%;height:100%;object-fit:cover}
+.auth-user-meta{display:flex;flex-direction:column;gap:1px;min-width:0}
+.auth-user-name{font-size:12px;font-weight:800;color:var(--text);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.auth-user-email{font-size:11px;color:var(--text2);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.auth-link-btn{background:transparent;border:1px solid var(--border);color:var(--text2);padding:10px 12px}
+.auth-link-btn.danger{color:#ffb4b4;border-color:rgba(218,54,51,.5)}
+.auth-config-warning{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(227,179,65,.12);border:1px solid rgba(227,179,65,.25);color:#ffd580;font-size:12px;line-height:1.5;display:none}
+.auth-config-warning.visible{display:block}
+@media (max-width: 640px){
+  .auth-card{padding:22px 18px;border-radius:16px}
+  .auth-userbar{left:10px;right:10px;top:10px;border-radius:16px;justify-content:space-between}
+  .auth-user-name,.auth-user-email{max-width:120px}
+}
+
+</style>
+</head>
+<body class="auth-locked">
+
+<div id="authOverlay" class="auth-overlay">
+  <div class="auth-card">
+    <div class="auth-logo">🔐</div>
+    <div class="auth-title">כניסה מאובטחת לדשבורד</div>
+    <div class="auth-subtitle">הגישה לדשבורד מיועדת רק למשתמשים מורשים. התחבר עם אימייל וסיסמה שקיבלת ממנהל המערכת.</div>
+
+    <div style="margin-bottom:18px"></div>
+
+    <form id="loginForm" class="auth-form active">
+      <div class="auth-field">
+        <label for="loginEmail">אימייל</label>
+        <input id="loginEmail" class="auth-input" type="email" autocomplete="email" placeholder="name@example.com" required>
+      </div>
+      <div class="auth-field">
+        <label for="loginPassword">סיסמה</label>
+        <input id="loginPassword" class="auth-input" type="password" autocomplete="current-password" placeholder="הכנס סיסמה" required>
+      </div>
+      <button type="submit" class="auth-submit">התחבר</button>
+    </form>
+
+
+    <div id="authMessage" class="auth-message">בדיקת התחברות...</div>
+    <div id="authConfigWarning" class="auth-config-warning"></div>
+
+    <div class="auth-note">
+      הגישה למערכת ניתנת רק למשתמשים שאתה יוצר ידנית ב-Firebase Authentication. אין הרשמה עצמאית ואין התחברות עם Google.
+    </div>
+  </div>
+</div>
+
+<div id="authUserbar" class="auth-userbar">
+  <div class="auth-avatar" id="authAvatar">U</div>
+  <div class="auth-user-meta">
+    <div class="auth-user-name" id="authUserName">לא מחובר</div>
+    <div class="auth-user-email" id="authUserEmail">—</div>
+  </div>
+  <button type="button" class="auth-link-btn danger" id="logoutBtn">התנתק</button>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════
+     LANDING SCREEN
+════════════════════════════════════════════════════ -->
+<div id="landingScreen">
+  <div class="landing-logo">🍕</div>
+  <div class="landing-title">דשבורד דומינו'ס Wolt</div>
+  <div class="landing-subtitle">בחר את הדשבורד לצפייה</div>
+
+  <div class="landing-cards">
+    <!-- Card: Orders -->
+    <div class="landing-card orders" onclick="showApp('orders')">
+      <div class="landing-card-icon">📦</div>
+      <div class="landing-card-title">הזמנות</div>
+      <div class="landing-card-desc">דשבורד הזמנות מלא — מכירות,<br>דחיות, ניתוח לקוחות וסניפים</div>
+      <div class="landing-card-badge">Orders Dashboard</div>
+    </div>
+
+    <!-- Card: Times -->
+    <div class="landing-card times" onclick="showApp('times')">
+      <div class="landing-card-icon">⏱️</div>
+      <div class="landing-card-title">זמנים</div>
+      <div class="landing-card-desc">דשבורד זמני שילוח לפי סניף —<br>ממוצעים, טרנדים ומצטבר חודשי</div>
+      <div class="landing-card-badge">Delivery Times</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     ORDERS APP WRAPPER
+════════════════════════════════════════════════════ -->
+<div id="ordersApp">
+
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div style="color:var(--text2);font-size:13px">מעבד נתונים...</div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">פרטי לקוח</div>
+      <button class="modal-close" onclick="closeModal()">✕ סגור</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="dmOverlay" onclick="if(event.target===this)closeDM()">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">🗄️ ניהול נתונים שמורים</div>
+      <button class="modal-close" onclick="closeDM()">✕ סגור</button>
+    </div>
+    <div id="dmBody"></div>
+  </div>
+</div>
+
+<header>
+  <div class="hdr-brand">
+    <button class="back-btn" onclick="showApp('landing')">← חזור</button>
+    &nbsp;
+    <span class="logo">🍕</span>
+    <div>
+      <h1>דשבורד הזמנות Wolt</h1>
+      <small id="hdrSub">Domino's Pizza Network</small>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <button class="btn btn-secondary" onclick="openDM()" id="dmBtn">🗄️ נתונים שמורים <span id="dmDaysCount" style="background:var(--blue-dim);color:var(--blue);border-radius:10px;padding:1px 7px;font-size:11px">0</span></button>
+    
+    <button class="btn btn-primary" onclick="loadFromGoogleSheets()" style="background:var(--green-dim); border-color:var(--green); color:var(--green)">
+        <span class="dot" id="syncDot"></span>🔄 סנכרן מגוגל שיטס
+    </button>
+
+    <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
+      📂 טען קובץ ידני
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" hidden onchange="loadFile(this)">
+  </div>
+</header>
+
+<div class="main">
+
+  <div class="date-nav" id="dateNav">
+    <span class="date-nav-title">📅 הצג:</span>
+
+    <!-- Quick presets -->
+    <div class="preset-btns" id="presetBtns">
+      <button class="preset-btn"           id="preYesterday" onclick="applyPreset('yesterday')">📆 אתמול</button>
+      <button class="preset-btn"           id="preCurWeek"   onclick="applyPreset('curweek')">📅 שבוע נוכחי</button>
+      <button class="preset-btn"           id="prePrevWeek"  onclick="applyPreset('prevweek')">⏪ שבוע קודם</button>
+      <button class="preset-btn"           id="preAll"       onclick="applyPreset('all')">🗂️ כל הנתונים</button>
+      <button class="preset-btn"           id="preCustom"    onclick="applyPreset('custom')">🗓️ בחירה ידנית</button>
+    </div>
+
+    <!-- Custom range pickers (shown only when custom selected) -->
+    <div class="date-picker-wrap" id="customPickers" style="display:none">
+      <span style="font-size:11px;color:var(--text2)">מ-</span>
+      <input type="date" class="dp-input" id="dpFrom" onchange="onCustomRange()">
+      <span class="date-picker-sep">—</span>
+      <span style="font-size:11px;color:var(--text2)">עד</span>
+      <input type="date" class="dp-input" id="dpTo"   onchange="onCustomRange()">
+    </div>
+
+    <!-- Active range badge -->
+    <span class="range-badge" id="rangeBadge" style="display:none"></span>
+
+    <div style="flex:1"></div>
+
+    <!-- Compare toggle -->
+    <div class="date-nav-sep" id="compareNavSep"></div>
+    <div class="compare-section">
+      <span class="compare-label">📊 השווה:</span>
+      <button class="compare-preset" id="cmpNone"     onclick="applyComparePreset('')">ללא</button>
+      <button class="compare-preset" id="cmpYest"     onclick="applyComparePreset('yesterday')">אתמול</button>
+      <button class="compare-preset" id="cmpPrevWeek" onclick="applyComparePreset('prevweek')">שבוע קודם</button>
+      <button class="compare-preset" id="cmpCustom"   onclick="applyComparePreset('custom')">בחירה…</button>
+      <input type="date" class="dp-input" id="dpCompare" style="display:none" onchange="onCompareDate()">
+    </div>
+
+    <!-- hidden legacy elements so old JS refs don't crash -->
+    <div class="date-chips" id="dateChips" style="display:none"></div>
+    <div class="date-chips" id="compareChips" style="display:none"></div>
+  </div>
+
+  <div class="filter-bar" id="filterBar">
+    <span class="fb-label">🔍 פילטרים:</span>
+    <select class="fb-select" id="fbBranch" onchange="applyFilters()" style="min-width:170px">
+      <option value="">כל הסניפים</option>
+    </select>
+    <select class="fb-select" id="fbStatus" onchange="applyFilters()">
+      <option value="">כל הסטטוסים</option>
+      <option value="delivered">✅ הושלמו</option>
+      <option value="rejected">❌ דחיות</option>
+      <option value="refunded">🔄 החזרות</option>
+    </select>
+    <select class="fb-select" id="fbRejMsg" onchange="applyFilters()" style="min-width:180px">
+      <option value="">כל סיבות הדחייה</option>
+    </select>
+    <button class="fb-reset" onclick="resetFilters()">✕ אפס</button>
+    <span class="fb-badge" id="fbBadge" style="display:none">⚡ פילטר פעיל</span>
+    <span class="fb-count" id="fbCount"></span>
+  </div>
+
+  <div class="wow-bar mb12" id="wowBar">
+    <div class="wow-title">📊 השוואה:</div>
+    <div class="wow-badge" id="wowLabel">בחר תאריך להשוואה</div>
+    <div class="wow-items" id="wowItems">
+      <div class="wow-item"><span class="wlabel">הזמנות</span><span class="wcurr" id="wc1">—</span><span class="wprev" id="wp1">—</span><span class="wchg" id="wch1">—</span></div>
+      <div class="wow-sep"></div>
+      <div class="wow-item"><span class="wlabel">מכירות</span><span class="wcurr" id="wc2">—</span><span class="wprev" id="wp2">—</span><span class="wchg" id="wch2">—</span></div>
+      <div class="wow-sep"></div>
+      <div class="wow-item"><span class="wlabel">שיעור הצלחה</span><span class="wcurr" id="wc3">—</span><span class="wprev" id="wp3">—</span><span class="wchg" id="wch3">—</span></div>
+      <div class="wow-sep"></div>
+      <div class="wow-item"><span class="wlabel">דחיות</span><span class="wcurr" id="wc4">—</span><span class="wprev" id="wp4">—</span><span class="wchg" id="wch4">—</span></div>
+      <div class="wow-sep"></div>
+      <div class="wow-item"><span class="wlabel">כשל לקוחות</span><span class="wcurr" id="wc5">—</span><span class="wprev" id="wp5">—</span><span class="wchg" id="wch5">—</span></div>
+    </div>
+  </div>
+
+  <!-- ══ Week Failure Panels ══ -->
+  <div class="wf-panels" id="wfPanels">
+
+    <!-- Panel A: שבוע נוכחי כשלות -->
+    <div class="wf-panel highlight">
+      <div class="wf-title">
+        📅 סה"כ שבוע נוכחי
+        <span class="wf-range-badge" id="wfWeekRange">—</span>
+      </div>
+      <div class="wf-sub">נתוני השבוע הנוכחי — ראשון עד שבת — ללא תלות בפילטר הנוכחי</div>
+      <div class="wf-kpi-row">
+        <div class="wf-kpi blue">
+          <span class="v" id="wfKpiTotal">—</span>
+          <span class="l">סה"כ הזמנות</span>
+        </div>
+        <div class="wf-kpi red">
+          <span class="v" id="wfKpiFails">—</span>
+          <span class="l">סה"כ כשלים<br>(שורות דחויות)</span>
+        </div>
+        <div class="wf-kpi orange">
+          <span class="v" id="wfKpiUniqCust">—</span>
+          <span class="l">לקוחות<br>שנכשלו</span>
+        </div>
+        <div class="wf-kpi purple">
+          <span class="v" id="wfKpiUniqOrders">—</span>
+          <span class="l">הזמנות ייחודיות<br>שנכשלו</span>
+        </div>
+        <div class="wf-kpi" style="border-color:rgba(46,160,67,.35)">
+          <span class="v" id="wfKpiPureFailCust" style="color:var(--green)">—</span>
+          <span class="l">כשל ייחודי<br>(נכשלו בלבד)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel B: overlap customers -->
+    <div class="wf-panel">
+      <div class="wf-title">🔄 נכשלו — אך גם הצליחו באותו יום</div>
+      <div class="wf-sub">לקוחות שיש להם דחייה AND הזמנה שהצליחה באותו יום קלנדרי (שבוע נוכחי)</div>
+      <div class="wf-overlap-num" id="wfOverlapNum">—</div>
+      <div class="wf-overlap-label">לקוחות ייחודיים</div>
+      <span class="wf-overlap-pct" id="wfOverlapPct">—</span>
+      <br>
+      <button class="wf-expand-btn" id="wfExpandBtn" onclick="toggleOverlapTable()">
+        📋 הצג רשימה
+      </button>
+      <div class="wf-overlap-table" id="wfOverlapTable">
+        <table>
+          <thead><tr>
+            <th>טלפון</th>
+            <th>ימים עם חפיפה</th>
+            <th>דחיות</th>
+            <th>הצלחות</th>
+            <th>סניפים</th>
+          </tr></thead>
+          <tbody id="wfOverlapTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <!-- ══ END Week Failure Panels ══ -->
+
+  <div class="kpi-grid mb16">
+    <div class="kpi-card blue">
+      <div class="kpi-top"><span class="kpi-label">סה"כ הזמנות</span><span class="kpi-icon">📦</span></div>
+      <div class="kpi-value" id="kpiTotal">—</div>
+      <div class="kpi-sub" id="kpiTotalSub">הזמנות ביום</div>
+      <span class="kpi-change flat" id="kpiTotalChg">—</span>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-top"><span class="kpi-label">סה"כ מכירות</span><span class="kpi-icon">💰</span></div>
+      <div class="kpi-value" id="kpiSales">—</div>
+      <div class="kpi-sub">GOV סה"כ</div>
+      <span class="kpi-change flat" id="kpiSalesChg">—</span>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-top"><span class="kpi-label">הושלמו</span><span class="kpi-icon">✅</span></div>
+      <div class="kpi-value" id="kpiDelivered">—</div>
+      <div class="kpi-sub" id="kpiDeliveredPct">—</div>
+      <span class="kpi-change flat" id="kpiDeliveredChg">—</span>
+    </div>
+    <div class="kpi-card orange">
+      <div class="kpi-top"><span class="kpi-label">ממוצע הזמנה</span><span class="kpi-icon">🧾</span></div>
+      <div class="kpi-value" id="kpiAvg">—</div>
+      <div class="kpi-sub">ממוצע GOV</div>
+      <span class="kpi-change flat" id="kpiAvgChg">—</span>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-top"><span class="kpi-label">דחיות</span><span class="kpi-icon">❌</span></div>
+      <div class="kpi-value" id="kpiRejected">—</div>
+      <div class="kpi-sub" id="kpiRejPct">ניסיונות שנדחו</div>
+      <span class="kpi-change flat" id="kpiRejectedChg">—</span>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-top"><span class="kpi-label">כשל לקוחות</span><span class="kpi-icon">👤</span></div>
+      <div class="kpi-value" id="kpiFailures">—</div>
+      <div class="kpi-sub" id="kpiFailSub">לקוחות ייחודיים שנדחו</div>
+      <span class="kpi-change flat" id="kpiFailuresChg">—</span>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-top"><span class="kpi-label">החזרות</span><span class="kpi-icon">🔄</span></div>
+      <div class="kpi-value" id="kpiRefunded">—</div>
+      <div class="kpi-sub" id="kpiRefPct">—</div>
+      <span class="kpi-change flat" id="kpiRefundedChg">—</span>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-top"><span class="kpi-label">שיעור הצלחה</span><span class="kpi-icon">📊</span></div>
+      <div class="kpi-value" id="kpiRate">—</div>
+      <div class="kpi-sub">delivered / total</div>
+      <span class="kpi-change flat" id="kpiRateChg">—</span>
+    </div>
+  </div>
+
+  <div class="rejection-section mb12">
+    <div class="section-title"><span>⚠️</span> ניתוח דחיות וכשלות</div>
+    <div class="rej-explain">
+      <strong>דחייה</strong> = כל ניסיון הזמנה שנדחה (כל שורה) &nbsp;|&nbsp;
+      <strong>כשל</strong> = לקוח ייחודי שחווה דחייה (לפי מספר טלפון) &nbsp;|&nbsp;
+      לקוח שניסה 2 פעמים ונדחה = <strong>1 כשל</strong> + <strong>2 דחיות</strong>
+    </div>
+    <div class="rej-kpis">
+      <div class="rej-kpi red"><span class="v" id="rejTotal">—</span><span class="l">סה"כ דחיות</span></div>
+      <div class="rej-kpi orange"><span class="v" id="rejUnique">—</span><span class="l">כשל (לקוחות ייחודיים)</span></div>
+      <div class="rej-kpi blue"><span class="v" id="rejRepeat">—</span><span class="l">דחיות חוזרות</span></div>
+      <div class="rej-kpi green"><span class="v" id="rejRepeatCust">—</span><span class="l">לקוחות שניסו פעמיים+</span></div>
+    </div>
+    <div class="charts-2">
+      <div class="chart-card" style="background:var(--card2)">
+        <div class="chart-header"><div><div class="chart-title">דחיות vs כשל לפי סניף</div><div class="chart-sub">כחול=דחיות | אדום=לקוחות ייחודיים שנפגעו</div></div></div>
+        <div class="chart-wrap short"><canvas id="chartRejBranch"></canvas></div>
+      </div>
+      <div class="chart-card" style="background:var(--card2)">
+        <div class="chart-header"><div><div class="chart-title">סיבות דחייה</div><div class="chart-sub">לפי תדירות</div></div></div>
+        <div class="chart-wrap short"><canvas id="chartRejReasons"></canvas></div>
+      </div>
+    </div>
+    <div id="rejDetailWrap"></div>
+  </div>
+
+  <div class="tabs mb12">
+    <button class="tab-btn active" onclick="switchTab('overview',this)">📊 סקירה</button>
+    <button class="tab-btn" onclick="switchTab('hourly',this)">⏰ שעתי</button>
+    <button class="tab-btn" onclick="switchTab('branches',this)">🏪 סניפים</button>
+    <button class="tab-btn" onclick="switchTab('customers',this)">👥 לקוחות</button>
+    <button class="tab-btn" onclick="switchTab('trends',this)">📈 טרנדים</button>
+    <button class="tab-btn" onclick="switchTab('weekcomp',this)" id="weekCompTabBtn">📅 שבוע vs שבוע</button>
+    <button class="tab-btn" onclick="switchTab('orders',this)">📋 הזמנות</button>
+  </div>
+
+  <div class="tab-pane active" id="tab-overview">
+    <div class="charts-2 mb12">
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">התפלגות סטטוס</div><div class="chart-sub">הושלמו / נדחו / הוחזרו</div></div></div>
+        <div class="chart-wrap"><canvas id="chartStatus"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">מכירות לפי סניף — Top 10</div><div class="chart-sub">GOV ₪</div></div></div>
+        <div class="chart-wrap"><canvas id="chartSalesBranch"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-card mb12">
+      <div class="chart-header"><div><div class="chart-title">הזמנות לפי סניף — Top 15</div></div><button class="export-btn" onclick="exportCSV()">⬇ ייצא CSV</button></div>
+      <div class="chart-wrap tall"><canvas id="chartBranch"></canvas></div>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="tab-hourly">
+    <div class="charts-2 mb12">
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">פעילות לפי שעות</div><div class="chart-sub">Stacked: ירוק=הושלמו | אדום=נדחו | סגול=הוחזרו</div></div></div>
+        <div class="chart-wrap tall"><canvas id="chartHourlyStack"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">מגמה שעתית — השוואה</div><div class="chart-sub">— יום נבחר &nbsp;‐‐ תאריך השוואה</div></div></div>
+        <div class="chart-wrap tall"><canvas id="chartHourlyWow"></canvas></div>
+      </div>
+    </div>
+    <div class="chart-card mb12">
+      <div class="chart-header"><div><div class="chart-title">Heatmap — שעות × סניפים Top 12</div><div class="chart-sub">עוצמת צבע = כמות הזמנות</div></div></div>
+      <div class="heatmap-wrap" id="heatmapWrap"></div>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="tab-branches">
+    <div class="filters mb12">
+      <input class="filter-input" id="branchSearch" placeholder="🔍 חיפוש סניף..." oninput="filterBranchTable()" style="width:190px">
+      <button class="export-btn ml-auto" onclick="exportBranchCSV()">⬇ ייצא</button>
+    </div>
+    <div class="table-wrap mb12">
+      <table id="branchTable">
+        <thead><tr>
+          <th onclick="sortTable('branch','name')">סניף ↕</th>
+          <th onclick="sortTable('branch','total')">סה"כ ↕</th>
+          <th onclick="sortTable('branch','delivered')">הושלמו ↕</th>
+          <th onclick="sortTable('branch','rejected')">דחיות ↕</th>
+          <th onclick="sortTable('branch','failures')">כשל ↕</th>
+          <th onclick="sortTable('branch','refunded')">הוחזרו ↕</th>
+          <th onclick="sortTable('branch','rate')">הצלחה ↕</th>
+          <th onclick="sortTable('branch','gov')">מכירות ↕</th>
+          <th onclick="sortTable('branch','avg')">ממוצע ₪ ↕</th>
+        </tr></thead>
+        <tbody id="branchTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tab-pane" id="tab-customers">
+    <div class="rej-kpis mb12">
+      <div class="rej-kpi blue"><span class="v" id="custTotal">—</span><span class="l">לקוחות ייחודיים</span></div>
+      <div class="rej-kpi orange"><span class="v" id="custVip">—</span><span class="l">VIP (3+)</span></div>
+      <div class="rej-kpi red"><span class="v" id="custRepeat">—</span><span class="l">כשל חוזר</span></div>
+      <div class="rej-kpi green"><span class="v" id="custAvgSpend">—</span><span class="l">ממוצע הוצאה ₪</span></div>
+    </div>
+    <div class="filters mb12">
+      <input class="filter-input" id="custSearch" placeholder="🔍 4 ספרות אחרונות..." oninput="filterCustTable()" style="width:170px">
+      <button class="filter-btn active" onclick="setCustFilter('all',this)">הכל</button>
+      <button class="filter-btn" onclick="setCustFilter('vip',this)">🏆 VIP</button>
+      <button class="filter-btn" onclick="setCustFilter('repeat',this)">🔴 כשל חוזר</button>
+      <button class="filter-btn" onclick="setCustFilter('fail',this)">⚠️ כשל</button>
+      <button class="export-btn ml-auto" onclick="exportCustCSV()">⬇ ייצא</button>
+    </div>
+    <div class="table-wrap mb12">
+      <table>
+        <thead><tr>
+          <th>טלפון</th>
+          <th onclick="sortTable('cust','orders')">הזמנות ↕</th>
+          <th onclick="sortTable('cust','delivered')">הצלחות ↕</th>
+          <th onclick="sortTable('cust','rejected')">דחיות ↕</th>
+          <th onclick="sortTable('cust','refunded')">החזרות ↕</th>
+          <th onclick="sortTable('cust','rate')">שיעור ↕</th>
+          <th onclick="sortTable('cust','spent')">הוצאה ₪ ↕</th>
+          <th onclick="sortTable('cust','avg')">ממוצע ↕</th>
+          <th>סניף מועדף</th><th>סוג</th><th></th>
+        </tr></thead>
+        <tbody id="custTbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="custPag"></div>
+  </div>
+
+  <div class="tab-pane" id="tab-trends">
+    <div class="insights-grid mb12" id="insightsGrid"></div>
+    <div class="charts-2 mb12">
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">השוואת סניפים</div><div class="chart-sub">כחול = יום נבחר | אפור = השוואה</div></div></div>
+        <div class="chart-wrap tall"><canvas id="chartWowBranch"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header"><div><div class="chart-title">% שינוי שעתי</div><div class="chart-sub">ירוק = שיפור | אדום = ירידה</div></div></div>
+        <div class="chart-wrap tall"><canvas id="chartHourlyDelta"></canvas></div>
+      </div>
+    </div>
+    <div class="mb12">
+      <div class="section-title"><span>📋</span> טבלת טרנד לפי סניף</div>
+      <div class="table-wrap">
+        <table id="trendTable">
+          <thead><tr>
+            <th>סניף</th><th>יום נבחר</th><th>השוואה</th><th>שינוי</th><th>טרנד</th>
+            <th>מכירות נבחר</th><th>מכירות השוואה</th><th>שינוי מכירות</th>
+          </tr></thead>
+          <tbody id="trendTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════ -->
+  <!--  WEEK COMPARISON TAB                       -->
+  <!-- ══════════════════════════════════════════ -->
+  <div class="tab-pane" id="tab-weekcomp">
+
+    <!-- Summary KPIs -->
+    <div class="wow-chart-section">
+      <div class="wow-chart-header">
+        <div>
+          <div class="wow-chart-title">📅 השוואת שבועות — סיכום</div>
+          <div class="wow-chart-sub" id="wcRangeLabel">שבוע נוכחי מול שבוע קודם</div>
+        </div>
+        <div class="wow-legend">
+          <span><span class="wl-dot" style="background:var(--blue)"></span><span class="wl-label">שבוע נוכחי</span></span>
+          <span><span class="wl-dot" style="background:var(--orange)"></span><span class="wl-label">שבוע קודם</span></span>
+        </div>
+      </div>
+      <div class="wow-summary-row">
+        <div class="wow-sum-card">
+          <div class="wow-sum-icon">📦</div>
+          <div>
+            <div class="wow-sum-label">הזמנות</div>
+            <div class="wow-sum-values">
+              <span class="wow-sum-curr" id="wcKpiOrdersCurr" style="color:var(--blue)">—</span>
+              <span class="wow-sum-prev" id="wcKpiOrdersPrev">vs —</span>
+              <span class="wow-sum-chg flat" id="wcKpiOrdersChg">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="wow-sum-card">
+          <div class="wow-sum-icon">💰</div>
+          <div>
+            <div class="wow-sum-label">מכירות (GOV)</div>
+            <div class="wow-sum-values">
+              <span class="wow-sum-curr" id="wcKpiSalesCurr" style="color:var(--green)">—</span>
+              <span class="wow-sum-prev" id="wcKpiSalesPrev">vs —</span>
+              <span class="wow-sum-chg flat" id="wcKpiSalesChg">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="wow-sum-card">
+          <div class="wow-sum-icon">❌</div>
+          <div>
+            <div class="wow-sum-label">דחיות</div>
+            <div class="wow-sum-values">
+              <span class="wow-sum-curr" id="wcKpiRejCurr" style="color:var(--red)">—</span>
+              <span class="wow-sum-prev" id="wcKpiRejPrev">vs —</span>
+              <span class="wow-sum-chg flat" id="wcKpiRejChg">—</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3-metric grouped bar chart -->
+      <div class="wow-chart-wrap">
+        <canvas id="chartWcSummary"></canvas>
+      </div>
+    </div>
+
+    <!-- Daily breakdown charts -->
+    <div class="wow-charts-grid">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">📦 הזמנות יומיות</div>
+            <div class="chart-sub">כחול = שבוע נוכחי | כתום = שבוע קודם</div>
+          </div>
+          <div class="wow-metric-tabs" id="wcMetricTabs">
+            <button class="wm-tab active" id="wmTabOrders"  onclick="switchWcMetric('orders')">הזמנות</button>
+            <button class="wm-tab"        id="wmTabSales"   onclick="switchWcMetric('sales')">מכירות</button>
+            <button class="wm-tab"        id="wmTabRej"     onclick="switchWcMetric('rejections')">דחיות</button>
+          </div>
+        </div>
+        <div class="wow-chart-wrap tall">
+          <canvas id="chartWcDaily"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-header">
+          <div>
+            <div class="chart-title">📊 % שינוי יומי</div>
+            <div class="chart-sub">ירוק = שיפור | אדום = ירידה</div>
+          </div>
+        </div>
+        <div class="wow-chart-wrap tall">
+          <canvas id="chartWcDelta"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branch breakdown -->
+    <div class="wow-chart-section" style="margin-top:12px">
+      <div class="wow-chart-header">
+        <div>
+          <div class="wow-chart-title">🏪 השוואת סניפים — שבוע vs שבוע</div>
+          <div class="chart-sub">Top 12 סניפים לפי כמות הזמנות בשבוע נוכחי</div>
+        </div>
+      </div>
+      <div class="wow-chart-wrap tall" style="height:340px">
+        <canvas id="chartWcBranch"></canvas>
+      </div>
+    </div>
+
+  </div>
+  <!-- END WEEK COMP TAB -->
+
+  <div class="tab-pane" id="tab-orders">
+    <div class="filters mb12">
+      <input class="filter-input" id="orderSearch" placeholder="🔍 חיפוש..." oninput="filterOrders()" style="width:190px">
+      <select class="filter-input" id="orderStatusLocal" onchange="filterOrders()">
+        <option value="">כל הסטטוסים</option>
+        <option value="delivered">הושלמה</option>
+        <option value="rejected">נדחתה</option>
+        <option value="refunded">הוחזרה</option>
+      </select>
+      <select class="filter-input" id="orderBranchLocal" onchange="filterOrders()" style="max-width:190px"></select>
+      <button class="export-btn ml-auto" onclick="exportCSV()">⬇ ייצא CSV</button>
+    </div>
+    <div class="table-wrap mb12">
+      <table>
+        <thead><tr>
+          <th>#</th><th>מזהה</th><th>תאריך</th><th>סניף</th><th>סטטוס</th>
+          <th>סכום ₪</th><th>שעה</th><th>הודעת דחייה</th><th>טלפון</th>
+        </tr></thead>
+        <tbody id="orderTbody"></tbody>
+      </table>
+    </div>
+    <div class="pagination" id="orderPag"></div>
+  </div>
+
+</div><script>
+// ══════════════════════════════════════════════════════════
+//  CONSTANTS & STATE
+// ══════════════════════════════════════════════════════════
+const LS_KEY = 'wolt_dashboard_v2';
+const PAGE_SIZE = 30;
+
+// --- הגדרות גוגל שיטס ---
+// החלף את הקישור למטה בקישור ה-CSV שייצרת מהגוגל שיטס שלך
+const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTAtc0vyPuariz_HuCrOWuZmjDc2CbUpvZxWemBbNfjvYNMLFXG1nBRWZQSQwu1Cl5Yi2ZY8nuL2s52/pub?gid=0&single=true&output=csv'; 
+
+let allData = [];          // ALL accumulated orders
+let selectedDate = '';     // legacy – kept for compat
+let compareDate = '';      // legacy – kept for compat
+let compareMode = false;   // legacy
+
+// ── New range-based selection state ──
+// viewFrom / viewTo : DD/MM/YYYY strings (inclusive), '' = no bound
+let viewFrom  = '';
+let viewTo    = '';
+let viewPreset = 'yesterday';  // 'yesterday'|'curweek'|'prevweek'|'all'|'custom'
+
+let cmpPreset  = '';       // ''|'yesterday'|'prevweek'|'custom'
+let cmpFrom   = '';
+let cmpTo     = '';
+
+// Filter state
+let fbBranchVal = '', fbStatusVal = '', fbRejMsgVal = '';
+
+// Table state
+let sortState = { branch:{col:'total',dir:-1}, cust:{col:'orders',dir:-1} };
+let custFilter = 'all';
+let orderPage = 1, custPage = 1;
+let branchDataCache = [], custDataCache = [], orderDataCache = [];
+
+let charts = {};
+
+// ══════════════════════════════════════════════════════════
+//  GOOGLE SHEETS LOGIC
+// ══════════════════════════════════════════════════════════
+async function loadFromGoogleSheets() {
+    if (!GOOGLE_SHEET_CSV_URL || GOOGLE_SHEET_CSV_URL.includes('הכנס_כאן')) {
+        alert('אנא הגדר תחילה את הקישור ל-Google Sheets (GOOGLE_SHEET_CSV_URL)');
+        return;
+    }
+
+    showLoading(true);
+    const syncDot = document.getElementById('syncDot');
+    if(syncDot) syncDot.className = 'dot on';
+
+    try {
+        const response = await fetch(GOOGLE_SHEET_CSV_URL);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const csvText = await response.text();
+        
+        const workbook = XLSX.read(csvText, { type: 'string' });
+        const sheetName = workbook.SheetNames[0];
+        const raw = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
+        
+        const newRows = parseRows(raw);
+        
+        if (!newRows.length) {
+            alert('לא נמצאו נתונים תקינים בגיליון.');
+        } else {
+            const newDates = [...new Set(newRows.map(r => r.dateStr).filter(Boolean))];
+            newDates.forEach(d => { allData = allData.filter(r => r.dateStr !== d); });
+            allData = [...allData, ...newRows];
+            saveToLS();
+            selectedDate = newDates[0]; // legacy
+            viewPreset = 'yesterday';
+            const [gsf,gst] = presetRange('yesterday');
+            const yesterdayRows = allData.filter(r=>r.dateStr===gsf);
+            if(yesterdayRows.length){ viewFrom=gsf; viewTo=gst; }
+            else { viewFrom=newDates[0]; viewTo=newDates[0]; viewPreset='custom'; }
+            cmpFrom=''; cmpTo=''; cmpPreset='';
+            refreshAll();
+            console.log('סנכרון מהענן הושלם');
+        }
+    } catch (error) {
+        console.error('Error syncing with Google Sheets:', error);
+        alert('שגיאה בסנכרון. וודא שהגיליון מפורסם כ-CSV ושהקישור תקין.');
+    } finally {
+        showLoading(false);
+        if(syncDot) setTimeout(() => syncDot.className = 'dot', 2000);
+    }
+}
+
+// ══════════════════════════════════════════════════════════
+//  LOCALSTORAGE PERSISTENCE
+// ══════════════════════════════════════════════════════════
+function saveToLS() {
+  try {
+    const compact = allData.map(r=>({
+      i:r.purchaseId, b:r.branch, s:r.status,
+      rc:r.rejCat, rm:r.rejMsg, d:r.dateStr,
+      t:r.timeStr, h:r.hour, p:r.phone, g:r.gov
+    }));
+    localStorage.setItem(LS_KEY, JSON.stringify(compact));
+    return true;
+  } catch(e) {
+    console.warn('localStorage full:', e);
+    return false;
+  }
+}
+
+function loadFromLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return [];
+    const compact = JSON.parse(raw);
+    return compact.map((r,i)=>({
+      idx: i+1,
+      purchaseId: r.i||String(i),
+      branch: r.b||'לא ידוע',
+      status: r.s||'',
+      rejCat: r.rc||'',
+      rejMsg: r.rm||'',
+      dateStr: r.d||'',
+      timeStr: r.t||'',
+      hour: r.h,
+      phone: r.p||'',
+      gov: r.g||0
+    }));
+  } catch(e) {
+    console.warn('Error loading from localStorage:', e);
+    return [];
+  }
+}
+
+function getLSSize() {
+  try {
+    const raw = localStorage.getItem(LS_KEY)||'';
+    return raw.length * 2; 
+  } catch(e) { return 0; }
+}
+
+function deleteDateFromLS(dateStr) {
+  allData = allData.filter(r => r.dateStr !== dateStr);
+  saveToLS();
+  refreshAll();
+  renderDMModal();
+}
+
+function clearAllLS() {
+  if(!confirm('האם למחוק את כל הנתונים השמורים?')) return;
+  allData = [];
+  selectedDate = '';
+  compareDate = '';
+  localStorage.removeItem(LS_KEY);
+  refreshAll();
+  closeDM();
+}
+
+// ══════════════════════════════════════════════════════════
+//  COLUMN MAPPING & PARSING
+// ══════════════════════════════════════════════════════════
+const COL_MAP = {
+  purchaseId:['Purchase ID','purchase_id','Order ID','מזהה הזמנה'],
+  venueName:['Venue Name','venue_name','סניף','מסעדה','Branch'],
+  status:['Status','status','סטטוס','מצב'],
+  rejCat:['Rejection Category','rejection_category'],
+  rejMsg:['Rejection Message','rejection_message','סיבת דחייה','Rejection Reason'],
+  dateReceived:['Time Received Date','Date','תאריך'],
+  timeReceived:['Time Received Time','Time','שעה','DateTime'],
+  phone:['Phone Number','phone_number','טלפון','Phone'],
+  gov:['GOV (Gross Order Value) Total Local','GOV Total','סכום','Amount','Total','GOV']
+};
+
+function findCol(headers, keys) {
+  for(const k of keys){ const f=headers.find(h=>String(h).trim()===k); if(f!==undefined) return f; }
+  for(const k of keys){ const f=headers.find(h=>String(h).toLowerCase().includes(k.toLowerCase())); if(f!==undefined) return f; }
+  return null;
+}
+
+function parseRows(raw) {
+  if(!raw.length) return [];
+  const headers = Object.keys(raw[0]);
+  const cols = {};
+  for(const [k,v] of Object.entries(COL_MAP)) cols[k]=findCol(headers,v);
+  return raw.map((r,i)=>{
+    const timeVal = cols.timeReceived ? r[cols.timeReceived] : (cols.dateReceived ? r[cols.dateReceived] : '');
+    const dateVal = cols.dateReceived ? r[cols.dateReceived] : timeVal;
+    const dt = parseDateTime(timeVal);
+    const dd = parseDateTime(dateVal);
+    const phone = parsePhone(cols.phone ? r[cols.phone] : '');
+    const venue = cols.venueName ? String(r[cols.venueName]||'') : '';
+    const branch = extractBranch(venue);
+    const status = normalizeStatus(cols.status ? String(r[cols.status]||'').toLowerCase() : '');
+    const gov = parseFloat(cols.gov ? r[cols.gov] : 0) || 0;
+    if(!status) return null;
+    return {
+      idx: i+1,
+      purchaseId: cols.purchaseId ? String(r[cols.purchaseId]||'').substr(0,24) : 'row_'+i,
+      branch, status,
+      rejCat: cols.rejCat ? String(r[cols.rejCat]||'') : '',
+      rejMsg: cols.rejMsg ? String(r[cols.rejMsg]||'') : '',
+      dateStr: dd ? fmtDate(dd) : '',
+      timeStr: dt ? fmtTime(dt) : '',
+      hour: dt ? dt.getHours() : null,
+      phone, gov
+    };
+  }).filter(Boolean);
+}
+
+function parsePhone(v) {
+  if(!v) return '';
+  if(typeof v==='number') return Math.round(v).toString();
+  return String(v).replace(/\D/g,'');
+}
+function extractBranch(v) {
+  if(!v) return 'לא ידוע';
+  const p=v.split(' | '); return p.length>1?p[1]:v;
+}
+function normalizeStatus(s) {
+  if(!s) return null;
+  if(s==='delivered'||s.includes('הושלמ')||s.includes('success')||s.includes('accept')) return 'delivered';
+  if(s==='rejected'||s.includes('נדח')||s.includes('reject')) return 'rejected';
+  if(s==='refunded'||s.includes('הוחזר')||s.includes('זיכוי')||s.includes('refund')||s.includes('cancel')) return 'refunded';
+  return s;
+}
+function parseDateTime(v) {
+  if(!v) return null;
+  if(v instanceof Date) return isNaN(v)?null:v;
+  if(typeof v==='number'){ const d=new Date((v-25569)*86400*1000); return isNaN(d)?null:d; }
+  const d=new Date(v); return isNaN(d)?null:d;
+}
+function fmtDate(d){ return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear(); }
+function fmtTime(d){ return fmtDate(d)+' '+d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0'); }
+function fmtMoney(v){ return '₪'+Number(v).toLocaleString('he-IL',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function fmtNum(v){ return Number(v).toLocaleString('he-IL'); }
+function fmtPct(v){ return (v*100).toFixed(1)+'%'; }
+function maskPhone(p){ return p.length>=4?'****'+p.slice(-4):p; }
+function dateToSortKey(d){
+  if(!d) return 0;
+  const p=d.split('/'); if(p.length<3) return 0;
+  return parseInt(p[2])*10000+parseInt(p[1])*100+parseInt(p[0]);
+}
+function getAvailableDates(data){
+  return [...new Set(data.map(r=>r.dateStr).filter(Boolean))].sort((a,b)=>dateToSortKey(b)-dateToSortKey(a));
+}
+function getLatestDate(data){
+  const dates=getAvailableDates(data); return dates[0]||'';
+}
+
+// ══════════════════════════════════════════════════════════
+//  FILE LOADING 
+// ══════════════════════════════════════════════════════════
+function loadFile(input) {
+  const file = input.files[0]; if(!file) return;
+  showLoading(true);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw = XLSX.utils.sheet_to_json(ws, {defval:''});
+      const newRows = parseRows(raw);
+      if(!newRows.length){ alert('לא נמצאו שורות תקינות בקובץ.'); showLoading(false); input.value=''; return; }
+
+      const newDates = [...new Set(newRows.map(r=>r.dateStr).filter(Boolean))];
+      newDates.forEach(d=>{ allData = allData.filter(r=>r.dateStr!==d); });
+      allData = [...allData, ...newRows];
+      saveToLS();
+      newDates.sort((a,b)=>dateToSortKey(b)-dateToSortKey(a));
+      selectedDate = newDates[0]; // legacy
+      compareDate = '';
+      viewPreset = 'yesterday';
+      const [f,t] = presetRange('yesterday');
+      const yesterdayRows = allData.filter(r=>r.dateStr===f);
+      if(yesterdayRows.length){
+        viewFrom=f; viewTo=t;
+      } else {
+        viewFrom=newDates[0]; viewTo=newDates[0]; viewPreset='custom';
+      }
+      cmpFrom=''; cmpTo=''; cmpPreset='';
+      refreshAll();
+    } catch(ex) {
+      alert('שגיאה בקריאת הקובץ: '+ex.message);
+    }
+    showLoading(false);
+    input.value='';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ══════════════════════════════════════════════════════════
+//  DATE HELPERS & NAVIGATION
+// ══════════════════════════════════════════════════════════
+
+// DD/MM/YYYY <-> Date <-> YYYY-MM-DD conversions
+function dmy2date(s){ if(!s)return null; const p=s.split('/'); if(p.length<3)return null; const d=new Date(+p[2],+p[1]-1,+p[0]); return isNaN(d)?null:d; }
+function date2dmy(d){ if(!d||isNaN(d))return ''; return d.getDate().toString().padStart(2,'0')+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getFullYear(); }
+function date2iso(d){ if(!d||isNaN(d))return ''; return d.getFullYear()+'-'+(d.getMonth()+1).toString().padStart(2,'0')+'-'+d.getDate().toString().padStart(2,'0'); }
+function iso2date(s){ if(!s)return null; const d=new Date(s+'T00:00:00'); return isNaN(d)?null:d; }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+// Monday of the week containing d (ISO week: Mon=start)
+function weekStart(d){ const r=new Date(d); const day=r.getDay(); r.setDate(r.getDate()-day); return r; } // Sun=0 start
+
+// Compute [fromDMY, toDMY] for a preset
+function presetRange(preset){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const yesterday = addDays(today,-1);
+  const monThis = weekStart(today);
+  const sunThis = addDays(monThis,6);
+  const monPrev = addDays(monThis,-7);
+  const sunPrev = addDays(monThis,-1);
+  switch(preset){
+    case 'today':     return [date2dmy(today),     date2dmy(today)];
+    case 'yesterday': return [date2dmy(yesterday), date2dmy(yesterday)];
+    case 'curweek':   return [date2dmy(monThis),   date2dmy(sunThis)];
+    case 'prevweek':  return [date2dmy(monPrev),   date2dmy(sunPrev)];
+    case 'all':       return ['',''];
+    default:          return ['',''];
+  }
+}
+
+// Apply a preset to the main view
+function applyPreset(preset){
+  viewPreset = preset;
+  const pickerWrap = document.getElementById('customPickers');
+  if(preset==='custom'){
+    pickerWrap.style.display='flex';
+    const f = viewFrom ? dmy2date(viewFrom) : new Date();
+    const t = viewTo   ? dmy2date(viewTo)   : new Date();
+    document.getElementById('dpFrom').value = date2iso(f||new Date());
+    document.getElementById('dpTo').value   = date2iso(t||new Date());
+  } else {
+    pickerWrap.style.display='none';
+    const [f,t] = presetRange(preset);
+    viewFrom = f; viewTo = t;
+    refreshAll();
+  }
+  updatePresetUI();
+}
+
+// Handle custom range picker changes
+function onCustomRange(){
+  const f = document.getElementById('dpFrom').value;
+  const t = document.getElementById('dpTo').value;
+  if(f) viewFrom = date2dmy(iso2date(f));
+  if(t) viewTo   = date2dmy(iso2date(t));
+  if(f && t) refreshAll();
+}
+
+// Update visual active state of preset buttons + range badge
+function updatePresetUI(){
+  const map = {'pretoday':'today','preyesterday':'yesterday','precurweek':'curweek','preprevweek':'prevweek','preall':'all','precustom':'custom'};
+  Object.entries(map).forEach(([id,p])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', p===viewPreset);
+  });
+  const badge = document.getElementById('rangeBadge');
+  if(viewFrom||viewTo){
+    const lbl = (viewFrom&&viewTo&&viewFrom===viewTo) ? viewFrom
+              : (viewFrom&&viewTo) ? viewFrom+' — '+viewTo
+              : (viewFrom||viewTo);
+    badge.textContent = '📅 '+lbl;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// Compare preset
+function applyComparePreset(preset){
+  cmpPreset = preset;
+  document.getElementById('dpCompare').style.display = (preset==='custom') ? 'inline-block' : 'none';
+  if(preset==='custom'){
+    cmpFrom=''; cmpTo='';
+  } else if(preset===''){
+    cmpFrom=''; cmpTo='';
+    updateCompareUI(); updateAll();
+  } else {
+    const [f,t] = presetRange(preset);
+    cmpFrom=f; cmpTo=t;
+    updateCompareUI(); updateAll();
+  }
+}
+function onCompareDate(){
+  const v=document.getElementById('dpCompare').value;
+  if(v){ cmpFrom=date2dmy(iso2date(v)); cmpTo=cmpFrom; updateCompareUI(); updateAll(); }
+}
+function updateCompareUI(){
+  const map={'cmpnone':'','cmpyest':'yesterday','cmpprevweek':'prevweek','cmpcustom':'custom'};
+  Object.entries(map).forEach(([id,p])=>{
+    const el=document.getElementById(id); if(el) el.classList.toggle('active', p===cmpPreset);
+  });
+}
+
+function buildDateNav() {
+  const dates = getAvailableDates(allData);
+  document.getElementById('dmDaysCount').textContent = dates.length;
+  document.getElementById('hdrSub').textContent = `${dates.length} ימים | ${allData.length.toLocaleString('he-IL')} הזמנות`;
+  // If no explicit range yet, default to 'yesterday'
+  if(!viewFrom && !viewTo && dates.length){
+    const [f,t] = presetRange('yesterday');
+    viewFrom=f; viewTo=t;
+    viewPreset='yesterday';
+  }
+  updatePresetUI();
+  updateCompareUI();
+}
+
+
+function selectDate(d) {
+  // legacy – used by old chips if any
+  viewFrom = d; viewTo = d;
+  refreshAll();
+}
+function selectCompare(d) {
+  // legacy
+  cmpFrom = d; cmpTo = d;
+  if(!d){ cmpPreset=''; cmpFrom=''; cmpTo=''; }
+  updateAll();
+}
+function toggleCompareMode() {
+  // legacy no-op, compare is always accessible via presets
+}
+
+// ══════════════════════════════════════════════════════════
+//  GLOBAL FILTERS
+// ══════════════════════════════════════════════════════════
+function buildFilterBar(data) {
+  const branches = [...new Set(data.map(r=>r.branch).filter(Boolean))].sort();
+  const fbBranch = document.getElementById('fbBranch');
+  const prevB = fbBranch.value;
+  fbBranch.innerHTML = '<option value="">כל הסניפים ('+branches.length+')</option>';
+  branches.forEach(b=>{ fbBranch.innerHTML+=`<option value="${b}">${b}</option>`; });
+  if(branches.includes(prevB)) fbBranch.value=prevB;
+
+  const rejMsgs = [...new Set(data.filter(r=>r.status==='rejected'&&r.rejMsg).map(r=>r.rejMsg))];
+  const fbRej = document.getElementById('fbRejMsg');
+  const prevR = fbRej.value;
+  fbRej.innerHTML = '<option value="">כל סיבות הדחייה</option>';
+  rejMsgs.forEach(m=>{ const cnt=data.filter(r=>r.rejMsg===m).length; fbRej.innerHTML+=`<option value="${m}">${m.length>35?m.substr(0,35)+'...':m} (${cnt})</option>`; });
+  if(rejMsgs.includes(prevR)) fbRej.value=prevR;
+}
+
+function applyFilters() {
+  fbBranchVal = document.getElementById('fbBranch').value;
+  fbStatusVal = document.getElementById('fbStatus').value;
+  fbRejMsgVal = document.getElementById('fbRejMsg').value;
+  const isActive = fbBranchVal||fbStatusVal||fbRejMsgVal;
+  document.getElementById('fbBadge').style.display = isActive?'inline-flex':'none';
+  document.getElementById('filterBar').classList.toggle('active', !!isActive);
+  updateAll();
+}
+
+function resetFilters() {
+  fbBranchVal=''; fbStatusVal=''; fbRejMsgVal='';
+  document.getElementById('fbBranch').value='';
+  document.getElementById('fbStatus').value='';
+  document.getElementById('fbRejMsg').value='';
+  document.getElementById('fbBadge').style.display='none';
+  updateAll();
+}
+
+// Is dateStr d within [from, to] range? (DD/MM/YYYY, '' = unbounded)
+function inRange(d, from, to){
+  const k  = dateToSortKey(d);
+  const kf = from ? dateToSortKey(from) : 0;
+  const kt = to   ? dateToSortKey(to)   : 99999999;
+  return k>=kf && k<=kt;
+}
+
+function getViewData() {
+  let data;
+  if(!viewFrom && !viewTo){
+    data = allData; // 'כל הנתונים'
+  } else if(viewFrom===viewTo && viewFrom){
+    data = allData.filter(r=>r.dateStr===viewFrom);
+  } else {
+    data = allData.filter(r=>inRange(r.dateStr, viewFrom, viewTo));
+  }
+  if(fbBranchVal) data=data.filter(r=>r.branch===fbBranchVal);
+  if(fbStatusVal) data=data.filter(r=>r.status===fbStatusVal);
+  if(fbRejMsgVal) data=data.filter(r=>r.rejMsg===fbRejMsgVal);
+  return data;
+}
+
+function getCompareData() {
+  if(!cmpFrom && !cmpTo) return null;
+  let data;
+  if(cmpFrom===cmpTo && cmpFrom){
+    data = allData.filter(r=>r.dateStr===cmpFrom);
+  } else {
+    data = allData.filter(r=>inRange(r.dateStr, cmpFrom, cmpTo));
+  }
+  if(fbBranchVal) data=data.filter(r=>r.branch===fbBranchVal);
+  return data;
+}
+
+// ══════════════════════════════════════════════════════════
+//  STATS & REFRESH (Original Logic)
+// ══════════════════════════════════════════════════════════
+function computeStats(data) {
+  const total = data.length;
+  const delivered = data.filter(r=>r.status==='delivered');
+  const rejected = data.filter(r=>r.status==='rejected');
+  const refunded = data.filter(r=>r.status==='refunded');
+  const sales = delivered.reduce((s,r)=>s+r.gov,0);
+  const avgOrder = delivered.length ? sales/delivered.length : 0;
+  const phoneMap = {};
+  rejected.forEach(r=>{ if(r.phone){if(!phoneMap[r.phone])phoneMap[r.phone]=[];phoneMap[r.phone].push(r);} });
+  const uniqueFailPhones = Object.keys(phoneMap);
+  const repeatCust = uniqueFailPhones.filter(p=>phoneMap[p].length>=2);
+  const branchMap = {};
+  data.forEach(r=>{
+    if(!branchMap[r.branch]) branchMap[r.branch]={name:r.branch,total:0,delivered:0,rejected:0,refunded:0,gov:0,failPhones:new Set()};
+    const b=branchMap[r.branch];
+    b.total++; b[r.status]++; b.gov+=r.gov;
+    if(r.status==='rejected'&&r.phone) b.failPhones.add(r.phone);
+  });
+  const branches = Object.values(branchMap).map(b=>({...b,rate:b.total?b.delivered/b.total:0,avg:b.delivered?b.gov/b.delivered:0,failures:b.failPhones.size}));
+  const hourly = Array.from({length:24},(_,h)=>({h,delivered:0,rejected:0,refunded:0,total:0}));
+  data.forEach(r=>{ if(r.hour!==null&&r.hour!==undefined){hourly[r.hour][r.status]++;hourly[r.hour].total++;} });
+  const msgMap = {};
+  rejected.forEach(r=>{ if(r.rejMsg) msgMap[r.rejMsg]=(msgMap[r.rejMsg]||0)+1; });
+  const custMap = {};
+  data.forEach(r=>{
+    if(!r.phone) return;
+    if(!custMap[r.phone]) custMap[r.phone]={phone:r.phone,orders:0,delivered:0,rejected:0,refunded:0,spent:0,branches:{}};
+    const c=custMap[r.phone]; c.orders++; c[r.status]++; c.spent+=r.gov;
+    c.branches[r.branch]=(c.branches[r.branch]||0)+1;
+  });
+  const customers = Object.values(custMap).map(c=>({
+    ...c,
+    rate:c.orders?c.delivered/c.orders:0,
+    avg:c.delivered?c.spent/c.delivered:0,
+    favBranch:Object.entries(c.branches).sort((a,b)=>b[1]-a[1])[0]?.[0]||'',
+    type:c.rejected>=2?'repeat':c.orders>=3?'vip':c.rejected===1?'fail':'normal'
+  }));
+  return { total, delivered:delivered.length, rejected:rejected.length, refunded:refunded.length,
+    sales, avgOrder, uniqueFailures:uniqueFailPhones.length,
+    repeatCust:repeatCust.length, repeatRejections:Math.max(0,rejected.length-uniqueFailPhones.length),
+    branches, hourly, msgMap, customers };
+}
+
+function refreshAll() {
+  buildDateNav();
+  // filter bar options based on current view (before filters)
+  let fbData;
+  if(!viewFrom && !viewTo) fbData = allData;
+  else if(viewFrom===viewTo && viewFrom) fbData = allData.filter(r=>r.dateStr===viewFrom);
+  else fbData = allData.filter(r=>inRange(r.dateStr, viewFrom, viewTo));
+  buildFilterBar(fbData);
+  updateAll();
+}
+
+function updateAll() {
+  const viewData = getViewData();
+  const compareDataArr = getCompareData();
+  const c = computeStats(viewData);
+  const p = compareDataArr ? computeStats(compareDataArr) : null;
+
+  const isFiltered = fbBranchVal||fbStatusVal||fbRejMsgVal;
+  let totalForRange;
+  if(!viewFrom && !viewTo) totalForRange = allData.length;
+  else if(viewFrom===viewTo && viewFrom) totalForRange = allData.filter(r=>r.dateStr===viewFrom).length;
+  else totalForRange = allData.filter(r=>inRange(r.dateStr, viewFrom, viewTo)).length;
+  document.getElementById('fbCount').textContent = isFiltered
+    ? `מציג ${viewData.length} מתוך ${totalForRange}`
+    : `סה"כ ${totalForRange} הזמנות`;
+
+  updateWow(c, p);
+  updateKPIs(c, p);
+  updateRejection(viewData);
+  buildCharts(c, p);
+  buildBranchTable(c.branches);
+  buildCustTable(c.customers);
+  buildTrendTable(c, p);
+  buildInsights(c, p);
+  buildHeatmap(viewData);
+  buildOrdersTable(viewData);
+  buildOrderLocalBranchFilter(c.branches);
+  // rebuild week-comp if tab is visible
+  const wcPane=document.getElementById('tab-weekcomp');
+  if(wcPane&&wcPane.classList.contains('active')) buildWcCharts();
+
+  // always rebuild the week-failure panels (they are always visible)
+  buildWeekFailurePanels();
+}
+
+// ══════════════════════════════════════════════════════════
+//  UI UTILS & HELPERS
+// ══════════════════════════════════════════════════════════
+function chgHtml(curr,prev,invertGood=false){
+  if(prev===undefined||prev===null||prev===0) return '<span class="kpi-change flat">—</span>';
+  const pct=((curr-prev)/Math.abs(prev)*100);
+  const up=pct>=0;
+  const cls=up?(invertGood?'down':'up'):(invertGood?'up':'down');
+  return `<span class="kpi-change ${cls}">${up?'▲':'▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+}
+function wowChg(curr,prev,invertGood=false){
+  if(!prev) return {cls:'',txt:'—'};
+  const pct=((curr-prev)/Math.abs(prev)*100);
+  const up=pct>=0;
+  const cls=up?(invertGood?'text-red':'text-green'):(invertGood?'text-green':'text-red');
+  return {cls,txt:(up?'▲':'▼')+' '+Math.abs(pct).toFixed(1)+'%'};
+}
+
+function updateWow(c,p){
+  const wl=document.getElementById('wowLabel');
+  if(compareDate&&selectedDate) wl.textContent=selectedDate+' vs '+compareDate;
+  else if(selectedDate) wl.textContent='בחר תאריך להשוואה ←';
+  const items=[
+    {ci:1,curr:fmtNum(c.total),prev:p?fmtNum(p.total):'—',chg:p?wowChg(c.total,p.total):null},
+    {ci:2,curr:fmtMoney(c.sales),prev:p?fmtMoney(p.sales):'—',chg:p?wowChg(c.sales,p.sales):null},
+    {ci:3,curr:fmtPct(c.total?c.delivered/c.total:0),prev:p?fmtPct(p.total?p.delivered/p.total:0):'—',chg:p?wowChg(c.total?c.delivered/c.total:0,p?.total?p.delivered/p.total:0):null},
+    {ci:4,curr:c.rejected,prev:p?p.rejected:'—',chg:p?wowChg(c.rejected,p.rejected,true):null},
+    {ci:5,curr:c.uniqueFailures,prev:p?p.uniqueFailures:'—',chg:p?wowChg(c.uniqueFailures,p.uniqueFailures,true):null},
+  ];
+  items.forEach(it=>{
+    document.getElementById('wc'+it.ci).textContent=it.curr;
+    document.getElementById('wp'+it.ci).textContent=compareDate?('השוואה: '+(it.prev||'—')):'—';
+    const el=document.getElementById('wch'+it.ci);
+    el.textContent=it.chg?it.chg.txt:'—';
+    el.className='wchg '+(it.chg?it.chg.cls:'');
+  });
+}
+
+function updateKPIs(c,p){
+  const s=(id,v)=>{const e=document.getElementById(id);if(e)e.innerHTML=v;};
+  s('kpiTotal',fmtNum(c.total));
+  s('kpiTotalChg',chgHtml(c.total,p?.total));
+  s('kpiSales',fmtMoney(c.sales));
+  s('kpiSalesChg',chgHtml(c.sales,p?.sales));
+  s('kpiDelivered',fmtNum(c.delivered));
+  s('kpiDeliveredPct',fmtPct(c.total?c.delivered/c.total:0));
+  s('kpiAvg',fmtMoney(c.avgOrder));
+  s('kpiAvgChg',chgHtml(c.avgOrder,p?.avgOrder));
+  s('kpiRejected',fmtNum(c.rejected));
+  s('kpiFailures',fmtNum(c.uniqueFailures));
+  s('kpiRefunded',fmtNum(c.refunded));
+  s('kpiRate',fmtPct(c.total?c.delivered/c.total:0));
+  s('kpiRateChg',chgHtml(c.total?c.delivered/c.total:0,p?p.total?p.delivered/p.total:0:null));
+}
+
+function updateRejection(data){
+  const c=computeStats(data);
+  document.getElementById('rejTotal').textContent=c.rejected;
+  document.getElementById('rejUnique').textContent=c.uniqueFailures;
+  document.getElementById('rejRepeat').textContent=c.repeatRejections;
+  document.getElementById('rejRepeatCust').textContent=c.repeatCust;
+  const rej=data.filter(r=>r.status==='rejected');
+  const phoneMap={};
+  rej.forEach(r=>{ if(r.phone){if(!phoneMap[r.phone])phoneMap[r.phone]=[];phoneMap[r.phone].push(r);} });
+  let html='<div class="table-wrap"><table><thead><tr><th>טלפון</th><th>סניף</th><th>ניסיונות</th><th>הודעת דחייה</th><th>שעה</th><th>סוג</th></tr></thead><tbody>';
+  Object.entries(phoneMap).forEach(([ph,rows])=>{
+    const isRepeat=rows.length>=2;
+    rows.forEach((r,i)=>{
+      html+=`<tr ${isRepeat?'style="background:rgba(218,54,51,.06)"':''}>
+        <td>${maskPhone(ph)}</td><td>${r.branch}</td>
+        <td>${i===0?`<strong class="${isRepeat?'text-red':''}">${rows.length}</strong>`:''}</td>
+        <td>${r.rejMsg||'—'}</td><td>${r.timeStr||'—'}</td>
+        <td>${i===0?`<span class="badge ${isRepeat?'repeat':'fail'}">${isRepeat?'🔴 חוזר':'⚠️ כשל'}</span>`:''}</td>
+      </tr>`;
+    });
+  });
+  document.getElementById('rejDetailWrap').innerHTML=html;
+}
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function mkChart(id,config){destroyChart(id);const ctx=document.getElementById(id)?.getContext('2d');if(!ctx)return;charts[id]=new Chart(ctx,config);}
+
+function buildCharts(c,p){
+  mkChart('chartStatus',{type:'doughnut',data:{
+    labels:['הושלמו','נדחו','הוחזרו'],
+    datasets:[{data:[c.delivered,c.rejected,c.refunded],backgroundColor:['#2EA043','#DA3633','#8957E5'],borderWidth:0}]
+  },options:{cutout:'65%'}});
+
+  const topB=[...c.branches].sort((a,b)=>b.total-a.total).slice(0,15);
+  mkChart('chartBranch',{type:'bar',data:{
+    labels:topB.map(b=>b.name),
+    datasets:[{label:'הזמנות',data:topB.map(b=>b.total),backgroundColor:'rgba(0,157,224,.7)'}]
+  },options:{indexAxis:'y'}});
+
+  const topS=[...c.branches].sort((a,b)=>b.gov-a.gov).slice(0,10);
+  mkChart('chartSalesBranch',{type:'bar',data:{
+    labels:topS.map(b=>b.name),
+    datasets:[{label:'מכירות',data:topS.map(b=>b.gov),backgroundColor:'rgba(46,160,67,.7)'}]
+  }});
+
+  const rejB=c.branches.filter(b=>b.rejected>0).sort((a,b)=>b.rejected-a.rejected).slice(0,10);
+  mkChart('chartRejBranch',{type:'bar',data:{
+    labels:rejB.map(b=>b.name),
+    datasets:[{label:'דחיות',data:rejB.map(b=>b.rejected),backgroundColor:'rgba(218,54,51,.7)'}]
+  }});
+
+  const msgs=Object.entries(c.msgMap).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  mkChart('chartRejReasons',{type:'bar',data:{
+    labels:msgs.map(m=>m[0].substr(0,25)),
+    datasets:[{data:msgs.map(m=>m[1]),backgroundColor:'rgba(218,54,51,.7)'}]
+  },options:{indexAxis:'y'}});
+
+  buildHourlyCharts(c,p);
+}
+
+function buildHourlyCharts(c,p){
+  mkChart('chartHourlyStack',{type:'bar',data:{
+    labels:Array.from({length:24},(_,i)=>i+':00'),
+    datasets:[
+      {label:'הושלמו',data:c.hourly.map(h=>h.delivered),backgroundColor:'rgba(46,160,67,.8)',stack:'s'},
+      {label:'נדחו',data:c.hourly.map(h=>h.rejected),backgroundColor:'rgba(218,54,51,.8)',stack:'s'},
+    ]
+  },options:{scales:{x:{stacked:true},y:{stacked:true}}}});
+}
+
+function buildHeatmap(data){
+  const c=computeStats(data);
+  const hours=Array.from({length:16},(_,i)=>i+8);
+  const topBranches=[...c.branches].sort((a,b)=>b.total-a.total).slice(0,10);
+  const matrix={};
+  data.forEach(r=>{ if(r.hour!==null){ const k=r.branch+':'+r.hour; matrix[k]=(matrix[k]||0)+1; } });
+  const maxVal=Math.max(...Object.values(matrix),1);
+  let html='<table class="heatmap"><thead><tr><th class="branch-col">סניף</th>';
+  hours.forEach(h=>html+=`<th>${h}:00</th>`);
+  html+='</tr></thead><tbody>';
+  topBranches.forEach(b=>{
+    html+=`<tr><td>${b.name}</td>`;
+    hours.forEach(h=>{
+      const v=matrix[b.name+':'+h]||0;
+      const alpha=0.1+(v/maxVal)*0.9;
+      const bg=v>0?`rgba(0,157,224,${alpha})`:'transparent';
+      html+=`<td><div class="hm-cell" style="background:${bg}">${v||''}</div></td>`;
+    });
+    html+='</tr>';
+  });
+  document.getElementById('heatmapWrap').innerHTML=html+'</tbody></table>';
+}
+
+function buildBranchTable(branches){branchDataCache=[...branches];sortAndRenderBranch();}
+function sortAndRenderBranch(){
+  const {col,dir}=sortState.branch;
+  let sorted=[...branchDataCache].sort((a,b)=>dir*(a[col]-b[col]));
+  let html='';
+  sorted.forEach(b=>{
+    html+=`<tr><td><strong>${b.name}</strong></td><td>${fmtNum(b.total)}</td><td>${fmtNum(b.delivered)}</td><td>${b.rejected}</td><td>${b.failures}</td><td>${b.refunded}</td><td>${fmtPct(b.rate)}</td><td>${fmtMoney(b.gov)}</td><td>${fmtMoney(b.avg)}</td></tr>`;
+  });
+  document.getElementById('branchTbody').innerHTML=html;
+}
+
+function buildCustTable(customers){custDataCache=[...customers];sortAndRenderCust();}
+function sortAndRenderCust(){
+  const slice=custDataCache.slice(0,PAGE_SIZE);
+  let html='';
+  slice.forEach(c=>{
+    html+=`<tr><td>${maskPhone(c.phone)}</td><td>${c.orders}</td><td>${c.delivered}</td><td>${c.rejected}</td><td>${c.refunded}</td><td>${fmtPct(c.rate)}</td><td>${fmtMoney(c.spent)}</td><td>${fmtMoney(c.avg)}</td><td>${c.favBranch}</td><td>${c.type}</td><td><button class="btn btn-secondary" onclick='showCustModal("${c.phone}")'>🔍</button></td></tr>`;
+  });
+  document.getElementById('custTbody').innerHTML=html;
+}
+
+function buildTrendTable(c,p){
+  if(!p) return;
+  const currMap={}; c.branches.forEach(b=>currMap[b.name]=b.total);
+  const prevMap={}; p.branches.forEach(b=>prevMap[b.name]=b.total);
+  let html='';
+  Object.keys(currMap).slice(0,10).forEach(n=>{
+    const pct=prevMap[n]?((currMap[n]-prevMap[n])/prevMap[n]*100):0;
+    html+=`<tr><td>${n}</td><td>${currMap[n]}</td><td>${prevMap[n]||0}</td><td class="${pct>=0?'text-green':'text-red'}">${pct.toFixed(1)}%</td><td>${pct>=0?'📈':'📉'}</td><td>—</td><td>—</td><td>—</td></tr>`;
+  });
+  document.getElementById('trendTbody').innerHTML=html;
+}
+
+function buildInsights(c,p){
+  const insights=[
+    {icon:'🏆',title:'סניף מוביל',text:[...c.branches].sort((a,b)=>b.total-a.total)[0]?.name || '—'},
+    {icon:'💰',title:'מכירות',text:fmtMoney(c.sales)},
+    {icon:'⚠️',title:'דחיות',text:c.rejected+' הזמנות'},
+    {icon:'📊',title:'הצלחה',text:fmtPct(c.total?c.delivered/c.total:0)}
+  ];
+  let html='';
+  insights.forEach(ins=>{ html+=`<div class="insight-card"><div class="insight-icon">${ins.icon}</div><div><div class="insight-title">${ins.title}</div><div class="insight-text">${ins.text}</div></div></div>`; });
+  document.getElementById('insightsGrid').innerHTML=html;
+}
+
+function buildOrdersTable(data){orderDataCache=[...data];renderOrders();}
+function renderOrders(){
+  const slice=orderDataCache.slice(0,PAGE_SIZE);
+  let html='';
+  slice.forEach((r,i)=>html+=`<tr><td>${i+1}</td><td>${r.purchaseId.substr(0,8)}</td><td>${r.dateStr}</td><td>${r.branch}</td><td>${r.status}</td><td>${fmtMoney(r.gov)}</td><td>${r.timeStr}</td><td>${r.rejMsg}</td><td>${maskPhone(r.phone)}</td></tr>`);
+  document.getElementById('orderTbody').innerHTML=html;
+}
+
+function buildOrderLocalBranchFilter(branches){
+  const sel=document.getElementById('orderBranchLocal'); if(!sel) return;
+  sel.innerHTML='<option value="">כל הסניפים</option>'+branches.map(b=>`<option value="${b.name}">${b.name}</option>`).join('');
+}
+
+function showCustModal(phone){
+  const orders=getViewData().filter(r=>r.phone===phone);
+  document.getElementById('modalTitle').textContent='לקוח: '+maskPhone(phone);
+  let html='<table><thead><tr><th>תאריך</th><th>סניף</th><th>סטטוס</th><th>סכום</th></tr></thead><tbody>';
+  orders.forEach(r=>html+=`<tr><td>${r.dateStr}</td><td>${r.branch}</td><td>${r.status}</td><td>${fmtMoney(r.gov)}</td></tr>`);
+  document.getElementById('modalBody').innerHTML=html+'</tbody></table>';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('show');}
+
+function openDM(){renderDMModal();document.getElementById('dmOverlay').classList.add('show');}
+function closeDM(){document.getElementById('dmOverlay').classList.remove('show');}
+function renderDMModal(){
+  const dates=getAvailableDates(allData);
+  let html=`<div style="margin-bottom:10px">${dates.length} ימים שמורים</div>`;
+  dates.forEach(d=>html+=`<div class="dm-day-row"><span>${d}</span><button class="dm-day-del" onclick="deleteDateFromLS('${d}')">🗑</button></div>`);
+  document.getElementById('dmBody').innerHTML=html;
+}
+
+function showLoading(v){document.getElementById('loadingOverlay').classList.toggle('show',v);}
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id)?.classList.add('active');
+  btn.classList.add('active');
+  if(id==='weekcomp') buildWcCharts();
+}
+
+function sortTable(tbl,col){
+  if(sortState[tbl].col===col) sortState[tbl].dir*=-1;
+  else{sortState[tbl].col=col;sortState[tbl].dir=-1;}
+  if(tbl==='branch') sortAndRenderBranch();
+}
+
+// ══════════════════════════════════════════════════════════
+//  WEEK COMPARISON CHARTS
+// ══════════════════════════════════════════════════════════
+let wcMetric = 'orders';   // current metric shown in daily chart
+
+function switchWcMetric(m){
+  wcMetric = m;
+  ['wmTabOrders','wmTabSales','wmTabRej'].forEach(id=>document.getElementById(id)?.classList.remove('active'));
+  const tabMap={orders:'wmTabOrders',sales:'wmTabSales',rejections:'wmTabRej'};
+  document.getElementById(tabMap[m])?.classList.add('active');
+  buildWcCharts();
+}
+
+// Aggregate data by day-of-week (Mon=0..Sun=6) for a given date range
+function aggregateByDay(data, fromDMY, toDMY){
+  const days=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+  // Build a map date->stats
+  const dateMap = {};
+  data.forEach(r=>{
+    if(!r.dateStr) return;
+    if(!dateMap[r.dateStr]) dateMap[r.dateStr]={orders:0,sales:0,rejections:0,delivered:0};
+    const d = dateMap[r.dateStr];
+    d.orders++;
+    if(r.status==='delivered'){ d.sales+=r.gov; d.delivered++; }
+    if(r.status==='rejected')  d.rejections++;
+  });
+  // Get sorted dates in range
+  const filtered = Object.keys(dateMap)
+    .filter(d=>inRange(d,fromDMY,toDMY))
+    .sort((a,b)=>dateToSortKey(a)-dateToSortKey(b));
+  return filtered.map(d=>{
+    const jsDate = dmy2date(d);
+    const dayIdx = jsDate ? jsDate.getDay() : 0; // 0=Sun,1=Mon,...,6=Sat
+    return {
+      date: d,
+      label: (jsDate ? days[dayIdx] : d) + '\n' + d,
+      shortLabel: d,
+      dayLabel: jsDate ? days[dayIdx] : d,
+      ...dateMap[d]
+    };
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+//  WEEK FAILURE PANELS (Panel A + Panel B)
+// ══════════════════════════════════════════════════════════
+
+function buildWeekFailurePanels(){
+  const [cwFrom, cwTo] = presetRange('curweek');
+
+  // All curweek data — NO filters applied (panels are independent)
+  const cwData = allData.filter(r => inRange(r.dateStr, cwFrom, cwTo));
+
+  // ── Panel A: numbers ───────────────────────────────────
+  const totalOrders   = cwData.length;
+  const failRows      = cwData.filter(r => r.status === 'rejected');
+  const failRowsCount = failRows.length;
+
+  // unique phones that had at least one rejection
+  const uniqFailPhones = new Set(failRows.filter(r=>r.phone).map(r=>r.phone));
+  const uniqCustFailed = uniqFailPhones.size;
+
+  // unique purchaseId that are rejected  (already unique by definition but guard)
+  const uniqFailOrders = new Set(failRows.map(r=>r.purchaseId)).size;
+
+  const g = id => document.getElementById(id);
+  const set = (id, v) => { if(g(id)) g(id).textContent = v; };
+
+  set('wfWeekRange',    cwFrom + ' — ' + cwTo);
+  set('wfKpiTotal',     fmtNum(totalOrders));
+  set('wfKpiFails',     fmtNum(failRowsCount));
+  set('wfKpiUniqCust',  fmtNum(uniqCustFailed));
+  set('wfKpiUniqOrders',fmtNum(uniqFailOrders));
+  // wfKpiPureFailCust is set after overlap is computed — see below
+
+  // ── Panel B: overlap customers ─────────────────────────
+  // For each phone that had at least one rejection,
+  // check if on ANY of those days the same phone also had a delivered order.
+  const overlapCustomers = []; // { phone, overlapDays, rejCount, delCount, branches }
+
+  uniqFailPhones.forEach(phone => {
+    const phoneRows = cwData.filter(r => r.phone === phone);
+    const rejDays   = new Set(phoneRows.filter(r=>r.status==='rejected').map(r=>r.dateStr));
+    const delDays   = new Set(phoneRows.filter(r=>r.status==='delivered').map(r=>r.dateStr));
+
+    // days where BOTH a rejection and a delivery occurred for this phone
+    const sharedDays = [...rejDays].filter(d => delDays.has(d));
+
+    if(sharedDays.length > 0){
+      const branches = [...new Set(phoneRows.map(r=>r.branch))].join(', ');
+      overlapCustomers.push({
+        phone,
+        overlapDays: sharedDays.length,
+        rejCount:  phoneRows.filter(r=>r.status==='rejected').length,
+        delCount:  phoneRows.filter(r=>r.status==='delivered').length,
+        branches
+      });
+    }
+  });
+
+  overlapCustomers.sort((a,b)=>b.overlapDays - a.overlapDays || b.rejCount - a.rejCount);
+
+  const overlapCount    = overlapCustomers.length;
+  // כשל ייחודי = לקוחות שנכשלו MINUS אלה שגם הצליחו באותו יום
+  const pureFailCount   = Math.max(0, uniqCustFailed - overlapCount);
+  set('wfKpiPureFailCust', fmtNum(pureFailCount));
+
+  const overlapPct   = uniqCustFailed > 0
+    ? ((overlapCount / uniqCustFailed) * 100).toFixed(1) + '% מהלקוחות שנכשלו'
+    : '—';
+
+  set('wfOverlapNum', fmtNum(overlapCount));
+  set('wfOverlapPct', overlapCount > 0 ? overlapPct : 'אין חפיפות');
+
+  // colour the overlap number
+  const overlapEl = g('wfOverlapNum');
+  if(overlapEl){
+    overlapEl.style.color = overlapCount > 0 ? 'var(--green)' : 'var(--text3)';
+  }
+
+  // Build table rows (hidden until expanded)
+  let tHtml = '';
+  overlapCustomers.forEach(c => {
+    tHtml += `<tr>
+      <td>${maskPhone(c.phone)}</td>
+      <td style="text-align:center">${c.overlapDays}</td>
+      <td style="text-align:center;color:var(--red)">${c.rejCount}</td>
+      <td style="text-align:center;color:var(--green)">${c.delCount}</td>
+      <td style="font-size:11px;color:var(--text2)">${c.branches}</td>
+    </tr>`;
+  });
+  const tbody = g('wfOverlapTbody');
+  if(tbody) tbody.innerHTML = tHtml || '<tr><td colspan="5" style="text-align:center;color:var(--text3)">אין לקוחות עם חפיפה</td></tr>';
+
+  // update expand button text
+  const btn = g('wfExpandBtn');
+  if(btn && !tHtml) btn.style.display = 'none';
+  else if(btn) btn.style.display = 'inline-block';
+}
+
+function toggleOverlapTable(){
+  const tbl = document.getElementById('wfOverlapTable');
+  const btn = document.getElementById('wfExpandBtn');
+  if(!tbl) return;
+  const isOpen = tbl.classList.toggle('open');
+  if(btn) btn.textContent = isOpen ? '🔼 הסתר רשימה' : '📋 הצג רשימה (' + document.querySelectorAll('#wfOverlapTbody tr').length + ')';
+}
+
+function buildWcCharts(){
+  const tab = document.getElementById('tab-weekcomp');
+  if(!tab || !tab.classList.contains('active')) return; // only build if visible
+
+  // Determine week ranges
+  const [cwFrom,cwTo] = presetRange('curweek');
+  const [pwFrom,pwTo] = presetRange('prevweek');
+
+  const cwData = allData.filter(r=>inRange(r.dateStr,cwFrom,cwTo));
+  const pwData = allData.filter(r=>inRange(r.dateStr,pwFrom,pwTo));
+
+  const cwStats = computeStats(cwData);
+  const pwStats = computeStats(pwData);
+
+  // Update range label
+  const lbl = document.getElementById('wcRangeLabel');
+  if(lbl) lbl.textContent = cwFrom+' — '+cwTo + '  vs  ' + pwFrom+' — '+pwTo;
+
+  // ── KPI summary cards ──────────────────────────
+  function wcChg(curr,prev,invertGood=false){
+    if(!prev) return {cls:'flat',txt:'—'};
+    const pct=((curr-prev)/Math.abs(prev)*100);
+    const isUp=pct>=0;
+    const isGood = invertGood ? !isUp : isUp;
+    return {cls: isGood?'up':(invertGood&&isUp?'down':'down'), txt:(isUp?'▲':'▼')+Math.abs(pct).toFixed(1)+'%'};
+  }
+  function setKpi(idCurr,idPrev,idChg,curr,prev,fmt,invertGood=false){
+    const el=(id)=>document.getElementById(id);
+    if(el(idCurr)) el(idCurr).textContent = fmt(curr);
+    if(el(idPrev)) el(idPrev).textContent  = 'vs '+fmt(prev);
+    if(el(idChg)){
+      const {cls,txt}=wcChg(curr,prev,invertGood);
+      el(idChg).className='wow-sum-chg '+cls;
+      el(idChg).textContent=txt;
+    }
+  }
+  setKpi('wcKpiOrdersCurr','wcKpiOrdersPrev','wcKpiOrdersChg', cwStats.total,    pwStats.total,    fmtNum);
+  setKpi('wcKpiSalesCurr', 'wcKpiSalesPrev', 'wcKpiSalesChg',  cwStats.sales,    pwStats.sales,    fmtMoney);
+  setKpi('wcKpiRejCurr',   'wcKpiRejPrev',   'wcKpiRejChg',    cwStats.rejected, pwStats.rejected, fmtNum, true);
+
+  // ── Summary grouped bar (orders, sales normalised, rejections) ─
+  const pctSales = pwStats.sales ? Math.round(cwStats.sales/pwStats.sales*100) : 0;
+  const pctOrders= pwStats.total ? Math.round(cwStats.total/pwStats.total*100) : 0;
+  const pctRej   = pwStats.rejected ? Math.round(cwStats.rejected/pwStats.rejected*100) : 0;
+  mkChart('chartWcSummary',{
+    type:'bar',
+    data:{
+      labels:['הזמנות','מכירות','דחיות'],
+      datasets:[
+        {label:'שבוע נוכחי', data:[cwStats.total,cwStats.sales,cwStats.rejected],
+          backgroundColor:['rgba(0,157,224,.8)','rgba(46,160,67,.8)','rgba(218,54,51,.8)'],
+          borderRadius:6, borderWidth:0},
+        {label:'שבוע קודם',  data:[pwStats.total,pwStats.sales,pwStats.rejected],
+          backgroundColor:['rgba(0,157,224,.25)','rgba(46,160,67,.25)','rgba(218,54,51,.25)'],
+          borderRadius:6, borderWidth:1,
+          borderColor:['rgba(0,157,224,.5)','rgba(46,160,67,.5)','rgba(218,54,51,.5)']}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8B949E',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#8B949E'},grid:{color:'rgba(48,54,61,.5)'}},
+        y:{ticks:{color:'#8B949E'},grid:{color:'rgba(48,54,61,.5)'}}
+      }
+    }
+  });
+
+  // ── Daily breakdown chart ───────────────────────
+  const cwDays = aggregateByDay(cwData, cwFrom, cwTo);
+  const pwDays = aggregateByDay(pwData, pwFrom, pwTo);
+
+  const metricLabel = {orders:'הזמנות',sales:'מכירות ₪',rejections:'דחיות'};
+  const metricColor = {orders:'rgba(0,157,224,.8)',sales:'rgba(46,160,67,.8)',rejections:'rgba(218,54,51,.8)'};
+  const metricColorDim={orders:'rgba(0,157,224,.25)',sales:'rgba(46,160,67,.25)',rejections:'rgba(218,54,51,.25)'};
+
+  mkChart('chartWcDaily',{
+    type:'bar',
+    data:{
+      labels: cwDays.map(d=>d.shortLabel),
+      datasets:[
+        {label:'שבוע נוכחי', data:cwDays.map(d=>d[wcMetric]),
+          backgroundColor:metricColor[wcMetric], borderRadius:5, borderWidth:0,
+          order:2},
+        {label:'שבוע קודם',  data:pwDays.map(d=>d[wcMetric]),
+          backgroundColor:metricColorDim[wcMetric],
+          borderColor:metricColor[wcMetric].replace(/\.8/,'.5'), borderWidth:1,
+          borderRadius:5, order:3},
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8B949E',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#8B949E',maxRotation:45},grid:{color:'rgba(48,54,61,.5)'}},
+        y:{ticks:{color:'#8B949E'},grid:{color:'rgba(48,54,61,.5)'}}
+      }
+    }
+  });
+
+  // ── Delta chart (% change day by day) ─────────
+  const maxLen = Math.min(cwDays.length, pwDays.length);
+  const deltaLabels=[], deltaData=[], deltaColors=[];
+  for(let i=0;i<maxLen;i++){
+    const curr=cwDays[i][wcMetric], prev=pwDays[i][wcMetric];
+    const pct = prev ? ((curr-prev)/Math.abs(prev)*100) : 0;
+    deltaLabels.push(cwDays[i].shortLabel);
+    deltaData.push(parseFloat(pct.toFixed(1)));
+    // for rejections, negative delta is GREEN (good); for orders/sales positive is GREEN
+    const invertGoodForRej = wcMetric==='rejections';
+    const isGood = invertGoodForRej ? pct<=0 : pct>=0;
+    deltaColors.push(isGood ? 'rgba(46,160,67,.8)' : 'rgba(218,54,51,.8)');
+  }
+  mkChart('chartWcDelta',{
+    type:'bar',
+    data:{
+      labels:deltaLabels,
+      datasets:[{
+        label:'% שינוי',
+        data:deltaData,
+        backgroundColor:deltaColors,
+        borderRadius:5,borderWidth:0
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>ctx.raw+'%'}}
+      },
+      scales:{
+        x:{ticks:{color:'#8B949E',maxRotation:45},grid:{color:'rgba(48,54,61,.5)'}},
+        y:{
+          ticks:{color:'#8B949E',callback:v=>v+'%'},
+          grid:{color:'rgba(48,54,61,.5)'},
+          border:{dash:[4,4]}
+        }
+      }
+    }
+  });
+
+  // ── Branch comparison horizontal bar ──────────
+  const cwBMap={}, pwBMap={};
+  cwStats.branches.forEach(b=>cwBMap[b.name]={orders:b.total,sales:b.gov,rejections:b.rejected});
+  pwStats.branches.forEach(b=>pwBMap[b.name]={orders:b.total,sales:b.gov,rejections:b.rejected});
+  const allBranches=[...new Set([...Object.keys(cwBMap),...Object.keys(pwBMap)])];
+  const topBranches=allBranches.sort((a,b)=>(cwBMap[b]?.orders||0)-(cwBMap[a]?.orders||0)).slice(0,12);
+  mkChart('chartWcBranch',{
+    type:'bar',
+    data:{
+      labels:topBranches,
+      datasets:[
+        {label:'שבוע נוכחי', data:topBranches.map(n=>cwBMap[n]?.orders||0),
+          backgroundColor:'rgba(0,157,224,.7)', borderRadius:4, borderWidth:0},
+        {label:'שבוע קודם',  data:topBranches.map(n=>pwBMap[n]?.orders||0),
+          backgroundColor:'rgba(227,179,65,.5)', borderRadius:4, borderWidth:1,
+          borderColor:'rgba(227,179,65,.6)'}
+      ]
+    },
+    options:{
+      indexAxis:'y',
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#8B949E',font:{size:11}}}},
+      scales:{
+        x:{ticks:{color:'#8B949E'},grid:{color:'rgba(48,54,61,.5)'}},
+        y:{ticks:{color:'#E6EDF3',font:{size:11}},grid:{display:false}}
+      }
+    }
+  });
+}
+
+function init(){
+  allData = loadFromLS();
+  if(allData.length){
+    selectedDate = getLatestDate(allData); // legacy compat
+    viewPreset = 'yesterday';
+    const [f,t] = presetRange('yesterday');
+    // Default to yesterday; fall back to latest available date
+    const yesterdayRows = allData.filter(r=>r.dateStr===f);
+    if(yesterdayRows.length){
+      viewFrom=f; viewTo=t;
+    } else {
+      const latest = getLatestDate(allData);
+      viewFrom=latest; viewTo=latest;
+      viewPreset='custom'; // flag as custom single date
+    }
+    refreshAll();
+  }
+  
+  // סנכרון אוטומטי בטעינה אם הוגדר קישור
+  if (GOOGLE_SHEET_CSV_URL && !GOOGLE_SHEET_CSV_URL.includes('הכנס_כאן')) {
+      loadFromGoogleSheets();
+  }
+}
+
+window.dashboardInit = init;
+
+// ═══════════════════════════════════════════════════════════
+//  LANDING / APP NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showApp(app) {
+  document.getElementById('landingScreen').classList.toggle('hidden', app !== 'landing');
+  document.getElementById('ordersApp').classList.toggle('active', app === 'orders');
+  document.getElementById('timesApp').classList.toggle('active', app === 'times');
+
+  if (app === 'times') {
+    // Auto-sync if data is present; otherwise load
+    if (!tmAllData.length) {
+      tmLoadFromSheets();
+    } else {
+      tmRefreshAll();
+    }
+  }
+  if (app === 'orders') {
+    // existing orders dashboard
+    if (allData.length) refreshAll();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TIMES DASHBOARD — DATA & STATE
+// ═══════════════════════════════════════════════════════════
+// !! SET YOUR SHEET 2 GID BELOW !!
+// Open your Google Sheet → click Sheet 2 tab → look at URL: ...gid=XXXXXXXX
+// Replace the gid=0 in the line below with your Sheet 2 gid
+const GOOGLE_SHEET2_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTAtc0vyPuariz_HuCrOWuZmjDc2CbUpvZxWemBbNfjvYNMLFXG1nBRWZQSQwu1Cl5Yi2ZY8nuL2s52/pub?gid=453940881&single=true&output=csv';
+
+let tmAllData   = [];   // all times rows
+let tmColF = 'קריאה לוולט (לפני יציאה)', tmColG = 'קריאה עד איסוף', tmColH = 'קריאה עד מסירה'; // dynamic column names
+
+// View state
+let tmViewFrom = '', tmViewTo = '', tmViewPreset = 'yesterday';
+let tmCmpFrom  = '', tmCmpTo  = '', tmCmpPreset  = '';
+let tmFbBranch = '';
+let tmSortCol  = 'orders', tmSortDir = -1;
+
+// Trend state
+let tmTrendMode   = 'dvd';    // 'dvd' = day-vs-day, 'wvw' = week-vs-week
+let tmTrendMetric = 'avgF';
+
+// Monthly state
+let tmSelectedMonth = '';     // 'MM/YYYY'
+
+let tmCharts = {};
+
+// ── Column detection ──────────────────────────────────────
+// Sheet 2 expected columns (very flexible auto-detection):
+// Date | Branch/Venue | OrderCount | ColA | ColB | ColC | ColF | ColG | ColH
+const TM_COL_MAP = {
+  date:    ['תאריך','Date','date','Time Received Date','יום','day','created_at','order_date'],
+  branch:  ['Venue Name','סניף','Branch','venue_name','מסעדה','Restaurant','store','חנות','שם סניף','מיקום'],
+  orders:  ['Count','הזמנות','Orders','כמות','order_count','סה"כ הזמנות','Orders Count','Total','סהכ','# הזמנות','מספר הזמנות'],
+  colF:    ['כמה זמן לפני היציאה מהתנור קראו לוולט','קריאה לוולט','זמן קריאה','ממוצע F','F','col_f','עמודה F','זמן F','ממוצע זמן F'],
+  colG:    ['מקריאה עד איסוף','זמן איסוף','קריאה עד איסוף','ממוצע G','G','col_g','עמודה G','זמן G','ממוצע זמן G'],
+  colH:    ['מקריאה עד מסירה','זמן מסירה','קריאה עד מסירה','ממוצע H','H','col_h','עמודה H','זמן H','ממוצע זמן H']
+};
+
+function tmFindCol(headers, keys) {
+  if (!keys || !keys.length) return null;
+  // 1. Exact match
+  for (const k of keys) {
+    const f = headers.find(h => String(h).trim() === k.trim());
+    if (f !== undefined) return f;
+  }
+  // 2. Case-insensitive exact
+  for (const k of keys) {
+    const f = headers.find(h => String(h).trim().toLowerCase() === k.trim().toLowerCase());
+    if (f !== undefined) return f;
+  }
+  // 3. Substring (partial match)
+  for (const k of keys) {
+    const kl = k.toLowerCase();
+    const f = headers.find(h => String(h).toLowerCase().includes(kl) || kl.includes(String(h).toLowerCase()));
+    if (f !== undefined) return f;
+  }
+  return null;
+}
+
+// Detect date column by scanning values in first data row
+function tmDetectDateCol(headers, firstRow) {
+  // Try known names first
+  const byName = tmFindCol(headers, TM_COL_MAP.date);
+  if (byName) return byName;
+  // Fallback: scan columns for a value that looks like a date
+  for (const h of headers) {
+    const v = firstRow[h];
+    if (v !== undefined && v !== null && v !== '') {
+      const d = tmParseDate(v);
+      if (d && d.getFullYear && d.getFullYear() >= 2020 && d.getFullYear() <= 2030) {
+        console.log('[TM] Auto-detected date column:', h, '→', v);
+        return h;
+      }
+    }
+  }
+  // Last resort: column 0 (A)
+  return headers[0] || null;
+}
+
+// Detect branch column by scanning values for text-like strings
+function tmDetectBranchCol(headers, firstRow, dateCol) {
+  const byName = tmFindCol(headers, TM_COL_MAP.branch);
+  if (byName) return byName;
+  // Find a column that has a non-empty string value that doesn't look like a number or date
+  for (let i = 0; i < headers.length; i++) {
+    const h = headers[i];
+    if (h === dateCol) continue;
+    const v = firstRow[h];
+    if (v && isNaN(Number(v)) && tmParseDate(v) === null && String(v).length > 1) {
+      console.log('[TM] Auto-detected branch column:', h, '→', v);
+      return h;
+    }
+  }
+  return headers[1] || null; // default to column B
+}
+
+// Smart column debug log
+function tmLogColumnDetection(headers, dateCol, branchCol, ordersCol, colFH, colGH, colHH) {
+  console.group('[TM] Column Detection Results');
+  console.log('All headers:', headers);
+  console.log('Date col   :', dateCol);
+  console.log('Branch col :', branchCol);
+  console.log('Orders col :', ordersCol);
+  console.log('Col F      :', colFH);
+  console.log('Col G      :', colGH);
+  console.log('Col H      :', colHH);
+  console.groupEnd();
+}
+
+function tmParseRows(raw) {
+  if (!raw.length) return [];
+  const headers = Object.keys(raw[0]);
+  const firstRow = raw[0];
+
+  // ── Auto-detect date format FIRST (D/M/Y vs M/D/Y) ───
+  TM_DATE_FMT = tmDetectDateFormat(raw);
+  console.log('[TM] Date format detected:', TM_DATE_FMT);
+
+  // ── Smart column detection ─────────────────────────────
+  let dateCol   = tmDetectDateCol(headers, firstRow);
+  let branchCol = tmDetectBranchCol(headers, firstRow, dateCol);
+  // Orders: try name-match first, then common positions (C=2, D=3, E=4)
+  let ordersCol = tmFindCol(headers, TM_COL_MAP.orders)
+    || headers.find(h => { const n=parseFloat(firstRow[h]); return n>0 && n<10000 && h!==dateCol && h!==branchCol; })
+    || null;
+
+  // F, G, H: name lookup first, then positional fallback (cols 5,6,7 = F,G,H in 0-indexed)
+  let colFH = tmFindCol(headers, TM_COL_MAP.colF) || headers[5] || null;
+  let colGH = tmFindCol(headers, TM_COL_MAP.colG) || headers[6] || null;
+  let colHH = tmFindCol(headers, TM_COL_MAP.colH) || headers[7] || null;
+
+  // Debug log to browser console
+  tmLogColumnDetection(headers, dateCol, branchCol, ordersCol, colFH, colGH, colHH);
+
+  // Update dynamic labels (shorten long Hebrew names for display)
+  const shortName = (s) => {
+    if (!s) return s;
+    if (s.includes('לפני היציאה') || s.includes('לפני יציאה')) return 'קריאה לוולט';
+    if (s.includes('עד איסוף'))   return 'קריאה → איסוף';
+    if (s.includes('עד מסירה'))   return 'קריאה → מסירה';
+    return s.length > 22 ? s.substr(0,22)+'…' : s;
+  };
+  if (colFH) tmColF = shortName(String(colFH));
+  if (colGH) tmColG = shortName(String(colGH));
+  if (colHH) tmColH = shortName(String(colHH));
+
+  // Update UI labels
+  const s = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  s('tmLblF', tmColF); s('tmLblG', tmColG); s('tmLblH', tmColH);
+  s('thF', tmColF + ' ↕'); s('thG', tmColG + ' ↕'); s('thH', tmColH + ' ↕');
+  s('tmMonthThF', tmColF); s('tmMonthThG', tmColG); s('tmMonthThH', tmColH);
+  s('tmColNames', tmColF + ' | ' + tmColG + ' | ' + tmColH);
+
+  const parsed = raw.map((r) => {
+    // ── Date ──
+    const rawDate = dateCol ? r[dateCol] : (r[headers[0]] || '');
+    const dt = tmParseDate(rawDate);
+    const dateStr = dt ? fmtDate(dt) : '';
+    if (!dateStr) return null;
+
+    // ── Branch ──
+    const rawBranch = branchCol ? String(r[branchCol] || '') : '';
+    let branch = rawBranch.trim();
+    // Handle "Brand | Branch |" format
+    if (branch.includes(' | ')) {
+      const parts = branch.split(' | ').map(p => p.trim()).filter(Boolean);
+      branch = parts[parts.length - 1] || parts[0] || branch;
+    }
+    if (!branch) branch = 'לא ידוע';
+
+    // ── Orders ── (if no dedicated column, each row = 1 order)
+    const ordersRaw = ordersCol ? r[ordersCol] : '';
+    const orders = ordersRaw !== '' ? (parseFloat(ordersRaw) || 0) : 1;
+
+    // ── Times (F, G, H) ──
+    const parseTime = (v) => {
+      if (!v && v !== 0) return 0;
+      const n = parseFloat(v);
+      if (!isNaN(n)) return n;
+      // Handle "HH:MM:SS" or "MM:SS" string format
+      const ts = String(v).trim();
+      const hms = ts.match(/^(\d+):(\d{2}):(\d{2})$/);
+      if (hms) return parseInt(hms[1])*60 + parseInt(hms[2]) + parseInt(hms[3])/60;
+      const ms = ts.match(/^(\d+):(\d{2})$/);
+      if (ms) return parseInt(ms[1]) + parseInt(ms[2])/60;
+      return 0;
+    };
+    const avgF = parseTime(colFH ? r[colFH] : 0);
+    const avgG = parseTime(colGH ? r[colGH] : 0);
+    const avgH = parseTime(colHH ? r[colHH] : 0);
+
+    return { dateStr, branch, orders, avgF, avgG, avgH };
+  });
+
+  const result = parsed.filter(r => r !== null && r.branch && r.dateStr);
+
+  // Save detected column info for debug display
+  window._tmDebug = { headers, dateCol, branchCol, ordersCol, colFH, colGH, colHH,
+    totalRaw: raw.length, totalParsed: result.length, fmt: TM_DATE_FMT,
+    sample: raw.slice(0,3).map(r => JSON.stringify(r).substring(0,120)) };
+
+  // If completely empty, log a helpful diagnostic
+  if (!result.length && raw.length > 0) {
+    console.error('[TM] Parsing failed for all', raw.length, 'rows.');
+    console.error('[TM] Date format detected:', TM_DATE_FMT);
+    console.error('[TM] Sample row:', JSON.stringify(raw[0]));
+    console.error('[TM] Headers:', headers);
+  }
+
+  return result;
+}
+
+// ── Date parsing — supports multiple formats ─────────────
+// Auto-detects D/M/Y vs M/D/Y from the dataset
+let TM_DATE_FMT = 'auto'; // 'dmy' | 'mdy' | 'auto'
+
+function tmDetectDateFormat(raw) {
+  // Scan up to 30 rows to determine the date format
+  let dmy = 0, mdy = 0;
+  const sample = raw.slice(0, 30);
+  const dateHdr = tmFindCol(Object.keys(raw[0] || {}), TM_COL_MAP.date);
+  sample.forEach(r => {
+    const v = String(dateHdr ? (r[dateHdr] || '') : (r[Object.keys(r)[0]] || '')).trim();
+    const m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (m) {
+      const a = parseInt(m[1]), b = parseInt(m[2]);
+      if (a > 12 && b <= 12) dmy++;       // first > 12 → must be day → D/M/Y
+      else if (b > 12 && a <= 12) mdy++;  // second > 12 → must be day → M/D/Y
+    }
+  });
+  if (dmy > 0 && mdy === 0) return 'dmy';
+  if (mdy > 0 && dmy === 0) return 'mdy';
+  // If ambiguous, default to D/M/Y (Israeli standard)
+  return 'dmy';
+}
+
+function tmParseDate(v) {
+  if (!v && v !== 0) return null;
+  if (v instanceof Date) return isNaN(v.getTime()) ? null : v;
+
+  // Excel/Sheets serial number (integer or float)
+  if (typeof v === 'number') {
+    if (v > 1 && v < 100000) {
+      // Google Sheets uses 1900-based serial (same as Excel but with leap-year bug)
+      const d = new Date(Date.UTC(1899, 11, 30) + v * 86400000);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    // Unix timestamp (milliseconds)
+    if (v > 1e10) { const d = new Date(v); return isNaN(d.getTime()) ? null : d; }
+    return null;
+  }
+
+  const s = String(v).trim();
+  if (!s) return null;
+
+  // ISO: YYYY-MM-DD or YYYY/MM/DD
+  const iso = s.match(/^(\d{4})[\-\/](\d{1,2})[\-\/](\d{1,2})$/);
+  if (iso) {
+    const d = new Date(+iso[1], +iso[2]-1, +iso[3]);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // D/M/Y or M/D/Y  — auto-detect based on TM_DATE_FMT
+  const slash = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (slash) {
+    let day, mon, yr;
+    const a = parseInt(slash[1]), b = parseInt(slash[2]), c = parseInt(slash[3]);
+    yr = c < 100 ? 2000 + c : c;
+    if (a > 12) { day = a; mon = b; }       // definitely D/M/Y
+    else if (b > 12) { mon = a; day = b; }  // definitely M/D/Y
+    else if (TM_DATE_FMT === 'mdy') { mon = a; day = b; }
+    else { day = a; mon = b; }              // default: D/M/Y (Israeli)
+    if (mon < 1 || mon > 12 || day < 1 || day > 31) return null;
+    const d = new Date(yr, mon-1, day);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // DD.MM.YYYY (dot separator)
+  const dot = s.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+  if (dot) {
+    const yr = parseInt(dot[3]); const yr4 = yr < 100 ? 2000+yr : yr;
+    const d = new Date(yr4, parseInt(dot[2])-1, parseInt(dot[1]));
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // Fallback: let JS try
+  const d = new Date(s);
+  if (!isNaN(d.getTime()) && d.getFullYear() >= 2000) return d;
+  return null;
+}
+
+// ── Loading ───────────────────────────────────────────────
+function tmShowColInfo() {
+  if (!tmAllData.length) { alert('אין נתונים טעונים עדיין.'); return; }
+  const d = window._tmDebug || {};
+  const months = tmGetMonths();
+  let msg = `📊 דוח אבחון\n`;
+  msg += `${'='.repeat(40)}\n`;
+  msg += `פורמט תאריך שזוהה: ${d.fmt || TM_DATE_FMT}\n`;
+  msg += `שורות גולמיות: ${d.totalRaw || '?'} → שורות תקינות: ${d.totalParsed || tmAllData.length}\n\n`;
+  msg += `עמודות שנמצאו:\n`;
+  msg += `• תאריך:   ${d.dateCol || '—'}\n`;
+  msg += `• סניף:    ${d.branchCol || '—'}\n`;
+  msg += `• הזמנות:  ${d.ordersCol || 'לא נמצא (חושב כ-1 לשורה)'}\n`;
+  msg += `• עמודה F: ${d.colFH || '—'} → ${tmColF}\n`;
+  msg += `• עמודה G: ${d.colGH || '—'} → ${tmColG}\n`;
+  msg += `• עמודה H: ${d.colHH || '—'} → ${tmColH}\n\n`;
+  msg += `כל הכותרות: ${(d.headers || []).join(' | ')}\n\n`;
+  msg += `חודשים בנתונים: ${months.join(', ')}\n\n`;
+  if (d.sample && d.sample.length) {
+    msg += `3 שורות ראשונות:\n${d.sample.map((s,i) => (i+1)+'. '+s).join('\n')}`;
+  }
+  alert(msg);
+}
+
+function tmShowPreview() {
+  if (!tmAllData.length) { alert('אין נתונים טעונים.'); return; }
+  const rows = tmAllData.slice(0, 10);
+  let html = `<style>
+    #tmPreviewModal { position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center }
+    #tmPreviewModal .inner { background:#161b22;border:1px solid #30363d;border-radius:12px;padding:20px;max-width:95%;max-height:85vh;overflow:auto;min-width:600px }
+    #tmPreviewModal table { width:100%;border-collapse:collapse;font-size:12px;direction:rtl }
+    #tmPreviewModal th { background:#21262d;color:#58a6ff;padding:6px 10px;border-bottom:1px solid #30363d;white-space:nowrap }
+    #tmPreviewModal td { padding:5px 10px;border-bottom:1px solid #21262d;color:#c9d1d9 }
+    #tmPreviewModal .close-btn { float:left;background:none;border:1px solid #30363d;color:#8b949e;border-radius:6px;padding:4px 10px;cursor:pointer }
+  </style>
+  <div id="tmPreviewModal" onclick="if(event.target.id==='tmPreviewModal')this.remove()">
+    <div class="inner">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong style="color:#e6edf3">👁️ תצוגה מקדימה — 10 שורות ראשונות</strong>
+        <button class="close-btn" onclick="document.getElementById('tmPreviewModal').remove()">✕ סגור</button>
+      </div>
+      <div style="font-size:11px;color:#8b949e;margin-bottom:10px">
+        פורמט תאריך: <strong style="color:#3fb950">${TM_DATE_FMT}</strong> &nbsp;|&nbsp;
+        סה"כ רשומות: <strong style="color:#3fb950">${tmAllData.length.toLocaleString('he-IL')}</strong> &nbsp;|&nbsp;
+        עמודה F: <strong style="color:#3fb950">${tmColF}</strong>
+      </div>
+      <table>
+        <thead><tr><th>#</th><th>תאריך</th><th>סניף</th><th>הזמנות</th><th>${tmColF}</th><th>${tmColG}</th><th>${tmColH}</th></tr></thead>
+        <tbody>`;
+  rows.forEach((r, i) => {
+    html += `<tr><td>${i+1}</td><td>${r.dateStr}</td><td>${r.branch}</td><td>${r.orders}</td>
+      <td style="color:${r.avgF>45?'#f85149':r.avgF>30?'#e3b341':'#3fb950'}">${r.avgF.toFixed(1)}</td>
+      <td>${r.avgG.toFixed(1)}</td><td>${r.avgH.toFixed(1)}</td></tr>`;
+  });
+  html += `</tbody></table></div></div>`;
+  const div = document.createElement('div');
+  div.innerHTML = html;
+  document.body.appendChild(div.firstChild);
+}
+
+async function tmLoadFromSheets() {
+  if (!GOOGLE_SHEET2_CSV_URL || GOOGLE_SHEET2_CSV_URL.includes('SET_YOUR')) {
+    alert('⚠️ יש להגדיר את ה-GID של גיליון 2 ב-GOOGLE_SHEET2_CSV_URL (שורה GOOGLE_SHEET2_CSV_URL בקוד)');
+    return;
+  }
+  tmShowLoading(true);
+  const dot = document.getElementById('tmSyncDot');
+  if (dot) dot.className = 'dot on';
+  try {
+    const response = await fetch(GOOGLE_SHEET2_CSV_URL);
+    if (!response.ok) throw new Error('Network error');
+    const csvText = await response.text();
+    const wb = XLSX.read(csvText, { type: 'string' });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+    const rows = tmParseRows(raw);
+    if (!rows.length) {
+      // Show detailed diagnostic
+      const hdrs = raw.length ? Object.keys(raw[0]).join(' | ') : 'אין שורות';
+      const sample = raw.length ? JSON.stringify(raw[0]).substring(0, 200) : '';
+      const msg = `⚠️ לא נמצאו נתוני זמנים תקינים.\n\nכותרות עמודות שנמצאו:\n${hdrs}\n\nשורה ראשונה (דוגמה):\n${sample}\n\nוודא שגיליון 2 מכיל:\n• עמודת תאריך (תאריך / Date)\n• עמודת סניף (סניף / Venue Name / Branch)\n• עמודות זמנים (F, G, H)`;
+      alert(msg);
+      console.error('[TM] Raw headers:', raw.length ? Object.keys(raw[0]) : []);
+      console.error('[TM] Raw sample:', raw[0]);
+    }
+    else {
+      tmAllData = rows;
+      tmSaveLs();
+      tmAutoSetView();
+      tmRefreshAll();
+      // Brief toast notification
+      const toastEl = document.getElementById('tmToast');
+      if (toastEl) {
+        toastEl.textContent = `✅ נטענו ${rows.length} רשומות | ${tmColF} | ${tmColG} | ${tmColH}`;
+        toastEl.style.display = 'block';
+        setTimeout(() => toastEl.style.display = 'none', 4000);
+        const cb = document.getElementById('tmColInfoBtn'); if (cb) cb.style.display = '';
+        const pb = document.getElementById('tmPreviewBtn'); if (pb) pb.style.display = '';
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    alert('שגיאה בטעינת גיליון 2: ' + e.message);
+  }
+  tmShowLoading(false);
+  if (dot) setTimeout(() => dot.className = 'dot', 2000);
+}
+
+function tmLoadFile(input) {
+  const file = input.files[0]; if (!file) return;
+  tmShowLoading(true);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      // Try sheet 2 first, fallback to sheet 1
+      const sheetIdx = wb.SheetNames.length > 1 ? 1 : 0;
+      const ws = wb.Sheets[wb.SheetNames[sheetIdx]];
+      const raw = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      const rows = tmParseRows(raw);
+      if (!rows.length) {
+        const hdrs = raw.length ? Object.keys(raw[0]).join(' | ') : 'אין שורות';
+        alert(`⚠️ לא נמצאו שורות תקינות.\n\nכותרות עמודות בקובץ:\n${hdrs}\n\nוודא שהקובץ מכיל עמודות: תאריך, סניף, ועמודות זמנים F/G/H`);
+      }
+      else {
+        tmAllData = rows;
+        tmSaveLs();
+        tmAutoSetView();
+        tmRefreshAll();
+      }
+    } catch (ex) { alert('שגיאה: ' + ex.message); }
+    tmShowLoading(false);
+    input.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function tmAutoSetView() {
+  tmViewPreset = 'yesterday';
+  const [f, t] = presetRange('yesterday');
+  const yRows = tmAllData.filter(r => r.dateStr === f);
+  if (yRows.length) { tmViewFrom = f; tmViewTo = t; }
+  else {
+    const dates = tmGetDates();
+    if (dates.length) {
+      // Use latest available date
+      tmViewFrom = dates[dates.length - 1]; tmViewTo = dates[dates.length - 1];
+    } else {
+      tmViewFrom = ''; tmViewTo = '';
+    }
+    tmViewPreset = 'custom';
+  }
+  tmCmpFrom = ''; tmCmpTo = ''; tmCmpPreset = '';
+  // Set monthly to LATEST MONTH IN DATA (not current calendar month)
+  const months = tmGetMonths();
+  tmSelectedMonth = months.length ? months[0] : '';
+}
+
+// ── LocalStorage ──────────────────────────────────────────
+const TM_LS_KEY = 'wolt_times_v3';  // bumped version → clears stale cache
+function tmSaveLs() {
+  try { localStorage.setItem(TM_LS_KEY, JSON.stringify(tmAllData)); } catch (e) {}
+}
+function tmLoadLs() {
+  try {
+    const raw = localStorage.getItem(TM_LS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) { return []; }
+}
+
+// ── Date helpers (shared) ─────────────────────────────────
+function tmGetDates() {
+  return [...new Set(tmAllData.map(r => r.dateStr).filter(Boolean))]
+    .sort((a, b) => dateToSortKey(b) - dateToSortKey(a));
+}
+
+// ── View filter ───────────────────────────────────────────
+function tmGetViewData() {
+  let data;
+  if (!tmViewFrom && !tmViewTo) data = tmAllData;
+  else if (tmViewFrom === tmViewTo && tmViewFrom) data = tmAllData.filter(r => r.dateStr === tmViewFrom);
+  else data = tmAllData.filter(r => inRange(r.dateStr, tmViewFrom, tmViewTo));
+  if (tmFbBranch) data = data.filter(r => r.branch === tmFbBranch);
+  return data;
+}
+
+function tmGetCmpData() {
+  if (!tmCmpFrom && !tmCmpTo) return null;
+  let data;
+  if (tmCmpFrom === tmCmpTo && tmCmpFrom) data = tmAllData.filter(r => r.dateStr === tmCmpFrom);
+  else data = tmAllData.filter(r => inRange(r.dateStr, tmCmpFrom, tmCmpTo));
+  if (tmFbBranch) data = data.filter(r => r.branch === tmFbBranch);
+  return data;
+}
+
+// ── Stats computation ─────────────────────────────────────
+function tmCompute(data) {
+  if (!data || !data.length) return { totalOrders: 0, avgF: 0, avgG: 0, avgH: 0, branches: [], byDate: {} };
+
+  let totalOrders = data.reduce((s, r) => s + r.orders, 0);
+  // If no orders column was found, every row has orders=1, but for pre-aggregated
+  // sheets orders was stored correctly. If all rows show 0 orders, fallback to row count.
+  if (totalOrders === 0) totalOrders = data.length;
+
+  // Average of averages for global
+  const vF = data.filter(r => r.avgF > 0).map(r => r.avgF);
+  const vG = data.filter(r => r.avgG > 0).map(r => r.avgG);
+  const vH = data.filter(r => r.avgH > 0).map(r => r.avgH);
+  const avgF = vF.length ? vF.reduce((a, b) => a + b, 0) / vF.length : 0;
+  const avgG = vG.length ? vG.reduce((a, b) => a + b, 0) / vG.length : 0;
+  const avgH = vH.length ? vH.reduce((a, b) => a + b, 0) / vH.length : 0;
+
+  // By branch
+  const bMap = {};
+  data.forEach(r => {
+    if (!bMap[r.branch]) bMap[r.branch] = { branch: r.branch, orders: 0, fVals: [], gVals: [], hVals: [] };
+    const b = bMap[r.branch];
+    b.orders += (r.orders > 0 ? r.orders : 1);
+    if (r.avgF > 0) b.fVals.push(r.avgF);
+    if (r.avgG > 0) b.gVals.push(r.avgG);
+    if (r.avgH > 0) b.hVals.push(r.avgH);
+  });
+  const branches = Object.values(bMap).map(b => ({
+    branch: b.branch,
+    orders: b.orders,
+    avgF: b.fVals.length ? b.fVals.reduce((a, c) => a + c, 0) / b.fVals.length : 0,
+    avgG: b.gVals.length ? b.gVals.reduce((a, c) => a + c, 0) / b.gVals.length : 0,
+    avgH: b.hVals.length ? b.hVals.reduce((a, c) => a + c, 0) / b.hVals.length : 0,
+  }));
+
+  // By date (for trend charts)
+  const byDate = {};
+  data.forEach(r => {
+    if (!byDate[r.dateStr]) byDate[r.dateStr] = { orders: 0, fVals: [], gVals: [], hVals: [] };
+    const d = byDate[r.dateStr];
+    d.orders += r.orders;
+    if (r.avgF > 0) d.fVals.push(r.avgF);
+    if (r.avgG > 0) d.gVals.push(r.avgG);
+    if (r.avgH > 0) d.hVals.push(r.avgH);
+  });
+  Object.values(byDate).forEach(d => {
+    d.avgF = d.fVals.length ? d.fVals.reduce((a, b) => a + b, 0) / d.fVals.length : 0;
+    d.avgG = d.gVals.length ? d.gVals.reduce((a, b) => a + b, 0) / d.gVals.length : 0;
+    d.avgH = d.hVals.length ? d.hVals.reduce((a, b) => a + b, 0) / d.hVals.length : 0;
+  });
+
+  return { totalOrders, avgF, avgG, avgH, branches, byDate };
+}
+
+// ── Refresh ───────────────────────────────────────────────
+function tmRefreshAll() {
+  tmBuildDateNav();
+  tmBuildFilterBar();
+  tmUpdateAll();
+}
+
+function tmUpdateAll() {
+  const viewData = tmGetViewData();
+  const cmpData  = tmGetCmpData();
+  const c = tmCompute(viewData);
+  const p = cmpData ? tmCompute(cmpData) : null;
+
+  tmUpdateKpis(c, p);
+  tmBuildBranchTable(c, p);
+  tmBuildCharts(c);
+  tmBuildTrendChart();
+  tmBuildInsights(c, p);
+  tmUpdateFbCount(viewData.length);
+
+  // Monthly (only if selected)
+  if (tmSelectedMonth) tmBuildMonthly();
+}
+
+// ── Date Nav ──────────────────────────────────────────────
+function tmBuildDateNav() {
+  const dates = tmGetDates();
+  document.getElementById('tmHdrSub').textContent = `${dates.length} ימים | ${tmAllData.reduce((s, r) => s + r.orders, 0).toLocaleString('he-IL')} הזמנות`;
+  if (!tmViewFrom && !tmViewTo && dates.length) {
+    const [f, t] = presetRange('yesterday');
+    tmViewFrom = f; tmViewTo = t; tmViewPreset = 'yesterday';
+  }
+  tmUpdatePresetUI();
+  tmUpdateCompareUI();
+  tmInitMonthButtons();
+}
+
+function tmUpdatePresetUI() {
+  const map = { tmPreYesterday: 'yesterday', tmPreCurWeek: 'curweek', tmPrePrevWeek: 'prevweek', tmPreAll: 'all', tmPreCustom: 'custom' };
+  Object.entries(map).forEach(([id, p]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', p === tmViewPreset);
+  });
+  const badge = document.getElementById('tmRangeBadge');
+  if (tmViewFrom || tmViewTo) {
+    const lbl = (tmViewFrom && tmViewTo && tmViewFrom === tmViewTo) ? tmViewFrom
+      : (tmViewFrom && tmViewTo) ? tmViewFrom + ' — ' + tmViewTo : (tmViewFrom || tmViewTo);
+    badge.textContent = '📅 ' + lbl;
+    badge.style.display = 'inline-flex';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function tmUpdateCompareUI() {
+  const map = { tmCmpNone: '', tmCmpYest: 'yesterday', tmCmpPrevWeek: 'prevweek', tmCmpCustom: 'custom' };
+  Object.entries(map).forEach(([id, p]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('active', p === tmCmpPreset);
+  });
+}
+
+function tmApplyPreset(preset) {
+  tmViewPreset = preset;
+  const pickers = document.getElementById('tmCustomPickers');
+  if (preset === 'custom') {
+    pickers.style.display = 'flex';
+    document.getElementById('tmDpFrom').value = date2iso(dmy2date(tmViewFrom) || new Date());
+    document.getElementById('tmDpTo').value   = date2iso(dmy2date(tmViewTo)   || new Date());
+  } else {
+    pickers.style.display = 'none';
+    const [f, t] = presetRange(preset);
+    tmViewFrom = f; tmViewTo = t;
+    tmRefreshAll();
+  }
+  tmUpdatePresetUI();
+}
+
+function tmOnCustomRange() {
+  const f = document.getElementById('tmDpFrom').value;
+  const t = document.getElementById('tmDpTo').value;
+  if (f) tmViewFrom = date2dmy(iso2date(f));
+  if (t) tmViewTo   = date2dmy(iso2date(t));
+  if (f && t) tmRefreshAll();
+}
+
+function tmApplyCompare(preset) {
+  tmCmpPreset = preset;
+  document.getElementById('tmDpCompare').style.display = (preset === 'custom') ? 'inline-block' : 'none';
+  if (preset === 'custom') { tmCmpFrom = ''; tmCmpTo = ''; }
+  else if (preset === '') { tmCmpFrom = ''; tmCmpTo = ''; tmUpdateCompareUI(); tmUpdateAll(); }
+  else { const [f, t] = presetRange(preset); tmCmpFrom = f; tmCmpTo = t; tmUpdateCompareUI(); tmUpdateAll(); }
+}
+
+function tmOnCompareDate() {
+  const v = document.getElementById('tmDpCompare').value;
+  if (v) { tmCmpFrom = date2dmy(iso2date(v)); tmCmpTo = tmCmpFrom; tmUpdateCompareUI(); tmUpdateAll(); }
+}
+
+// ── Filter bar ────────────────────────────────────────────
+function tmBuildFilterBar() {
+  const branches = [...new Set(tmAllData.map(r => r.branch).filter(Boolean))].sort();
+  const sel = document.getElementById('tmFbBranch');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">כל הסניפים (' + branches.length + ')</option>';
+  branches.forEach(b => sel.innerHTML += `<option value="${b}">${b}</option>`);
+  if (branches.includes(prev)) sel.value = prev;
+}
+
+function tmApplyFilters() {
+  tmFbBranch = document.getElementById('tmFbBranch').value;
+  tmUpdateAll();
+}
+
+function tmResetFilters() {
+  tmFbBranch = '';
+  document.getElementById('tmFbBranch').value = '';
+  tmUpdateAll();
+}
+
+function tmUpdateFbCount(count) {
+  document.getElementById('tmFbCount').textContent = `מציג ${count.toLocaleString('he-IL')} רשומות`;
+}
+
+// ── KPIs ──────────────────────────────────────────────────
+function fmtTime(v) {
+  if (!v || v === 0) return '—';
+  const m = Math.round(v);
+  if (m < 60) return m + ' דקות';
+  return Math.floor(m / 60) + ':' + (m % 60).toString().padStart(2, '0') + ' שעות';
+}
+function timeClass(v, threshGood = 30, threshWarn = 45) {
+  if (!v) return 'neutral';
+  if (v <= threshGood) return 'good';
+  if (v <= threshWarn) return 'warn';
+  return 'bad';
+}
+function timePill(v) {
+  if (!v || v === 0) return '<span class="time-pill neutral">—</span>';
+  const cls = timeClass(v);
+  return `<span class="time-pill ${cls}">${fmtTime(v)}</span>`;
+}
+function cmpTimeChg(curr, prev) {
+  // For time: lower is better → decrease = good
+  if (!prev) return '<span class="kpi-change flat">—</span>';
+  const pct = ((curr - prev) / Math.abs(prev) * 100);
+  const isGood = pct <= 0; // decrease in time = good
+  const cls = isGood ? 'good-down' : 'down';
+  return `<span class="kpi-change ${cls}">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+}
+function cmpOrdersChg(curr, prev) {
+  if (!prev) return '<span class="kpi-change flat">—</span>';
+  const pct = ((curr - prev) / Math.abs(prev) * 100);
+  const cls = pct >= 0 ? 'up' : 'down';
+  return `<span class="kpi-change ${cls}">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+}
+
+function tmUpdateKpis(c, p) {
+  const s = (id, v) => { const e = document.getElementById(id); if (e) e.innerHTML = v; };
+  s('tmKpiOrders', c.totalOrders.toLocaleString('he-IL'));
+  s('tmKpiOrdersChg', p ? cmpOrdersChg(c.totalOrders, p.totalOrders) : '<span class="kpi-change flat">—</span>');
+
+  const fEl = document.getElementById('tmKpiF');
+  if (fEl) { fEl.textContent = fmtTime(c.avgF); fEl.className = 'tm-time-val ' + timeClass(c.avgF); }
+  const gEl = document.getElementById('tmKpiG');
+  if (gEl) { gEl.textContent = fmtTime(c.avgG); gEl.className = 'tm-time-val ' + timeClass(c.avgG); }
+  const hEl = document.getElementById('tmKpiH');
+  if (hEl) { hEl.textContent = fmtTime(c.avgH); hEl.className = 'tm-time-val ' + timeClass(c.avgH); }
+
+  s('tmKpiFChg', p ? cmpTimeChg(c.avgF, p.avgF) : '<span class="kpi-change flat">—</span>');
+  s('tmKpiGChg', p ? cmpTimeChg(c.avgG, p.avgG) : '<span class="kpi-change flat">—</span>');
+  s('tmKpiHChg', p ? cmpTimeChg(c.avgH, p.avgH) : '<span class="kpi-change flat">—</span>');
+}
+
+// ── Branch Table ──────────────────────────────────────────
+let tmBranchCache = [];
+function tmBuildBranchTable(c, p) {
+  tmBranchCache = c.branches;
+  const pBMap = {};
+  if (p) p.branches.forEach(b => pBMap[b.branch] = b);
+
+  let sorted = [...c.branches].sort((a, b) => tmSortDir * (
+    tmSortCol === 'branch' ? a.branch.localeCompare(b.branch, 'he') : (b[tmSortCol] - a[tmSortCol])
+  ));
+  if (tmSortCol === 'branch') sorted = [...c.branches].sort((a, b) => tmSortDir * a.branch.localeCompare(b.branch, 'he'));
+
+  let html = '';
+  sorted.forEach(b => {
+    const pb = pBMap[b.branch];
+    const fChg = pb ? (function() {
+      if (!pb.avgF) return '';
+      const pct = ((b.avgF - pb.avgF) / pb.avgF * 100);
+      const cls = pct <= 0 ? 'cmp-badge-pos' : 'cmp-badge-neg';
+      return `<span class="${cls}">${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%</span>`;
+    })() : '';
+    html += `<tr>
+      <td><strong>${b.branch}</strong></td>
+      <td>${b.orders.toLocaleString('he-IL')}</td>
+      <td>${timePill(b.avgF)}</td>
+      <td>${timePill(b.avgG)}</td>
+      <td>${timePill(b.avgH)}</td>
+      <td>${fChg || '<span style="color:var(--text3)">—</span>'}</td>
+    </tr>`;
+  });
+
+  // Total row
+  const totalOrders = c.branches.reduce((s, b) => s + b.orders, 0);
+  const vF = c.branches.filter(b => b.avgF > 0).map(b => b.avgF);
+  const vG = c.branches.filter(b => b.avgG > 0).map(b => b.avgG);
+  const vH = c.branches.filter(b => b.avgH > 0).map(b => b.avgH);
+  const totF = vF.length ? vF.reduce((a, b) => a + b) / vF.length : 0;
+  const totG = vG.length ? vG.reduce((a, b) => a + b) / vG.length : 0;
+  const totH = vH.length ? vH.reduce((a, b) => a + b) / vH.length : 0;
+
+  document.getElementById('tmBranchTbody').innerHTML = html || '<tr><td colspan="6" class="nodata-msg">אין נתונים לטווח הנבחר</td></tr>';
+  document.getElementById('tmBranchTfoot').innerHTML = `<tr class="total-row">
+    <td>🔢 סה"כ / ממוצע</td>
+    <td>${totalOrders.toLocaleString('he-IL')}</td>
+    <td>${timePill(totF)}</td>
+    <td>${timePill(totG)}</td>
+    <td>${timePill(totH)}</td>
+    <td></td>
+  </tr>`;
+  document.getElementById('tmTableSub').textContent = `${sorted.length} סניפים | ${totalOrders.toLocaleString('he-IL')} הזמנות`;
+}
+
+function tmSortBranch(col) {
+  if (tmSortCol === col) tmSortDir *= -1;
+  else { tmSortCol = col; tmSortDir = col === 'branch' ? 1 : -1; }
+  const viewData = tmGetViewData();
+  const cmpData  = tmGetCmpData();
+  const c = tmCompute(viewData);
+  const p = cmpData ? tmCompute(cmpData) : null;
+  tmBuildBranchTable(c, p);
+}
+
+// ── Charts ────────────────────────────────────────────────
+function tmDestroyChart(id) { if (tmCharts[id]) { tmCharts[id].destroy(); delete tmCharts[id]; } }
+function tmMkChart(id, config) {
+  tmDestroyChart(id);
+  const ctx = document.getElementById(id)?.getContext('2d');
+  if (!ctx) return;
+  tmCharts[id] = new Chart(ctx, config);
+}
+
+const TM_CHART_DEFAULTS = {
+  responsive: true, maintainAspectRatio: false,
+  plugins: { legend: { labels: { color: '#8B949E', font: { size: 11 } } } },
+  scales: {
+    x: { ticks: { color: '#8B949E', maxRotation: 45 }, grid: { color: 'rgba(48,54,61,.5)' } },
+    y: { ticks: { color: '#8B949E' }, grid: { color: 'rgba(48,54,61,.5)' } }
+  }
+};
+
+function tmBuildCharts(c) {
+  // Branch bar chart (horizontal)
+  const sorted = [...c.branches].sort((a, b) => b.avgF - a.avgF).slice(0, 15);
+  tmMkChart('tmChartBranch', {
+    type: 'bar',
+    data: {
+      labels: sorted.map(b => b.branch),
+      datasets: [
+        { label: tmColF, data: sorted.map(b => parseFloat(b.avgF.toFixed(1))), backgroundColor: 'rgba(0,157,224,.8)', borderRadius: 4 },
+        { label: tmColG, data: sorted.map(b => parseFloat(b.avgG.toFixed(1))), backgroundColor: 'rgba(227,179,65,.8)', borderRadius: 4 },
+        { label: tmColH, data: sorted.map(b => parseFloat(b.avgH.toFixed(1))), backgroundColor: 'rgba(137,87,229,.8)', borderRadius: 4 },
+      ]
+    },
+    options: {
+      ...TM_CHART_DEFAULTS,
+      indexAxis: 'y',
+      plugins: {
+        legend: { labels: { color: '#8B949E', font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtTime(ctx.raw) } }
+      }
+    }
+  });
+
+  // ── Donut 1: Speed-tier distribution by avgH ─────────────
+  const tiers = [
+    { label: '🟢 מהיר (<20 דק)',  color: 'rgba(46,160,67,.85)',  min:  0, max: 20 },
+    { label: '🔵 סביר (20–30 דק)', color: 'rgba(0,157,224,.85)',  min: 20, max: 30 },
+    { label: '🟡 איטי (30–45 דק)', color: 'rgba(227,179,65,.85)', min: 30, max: 45 },
+    { label: '🔴 איטי מאוד (>45 דק)', color: 'rgba(218,54,51,.85)',  min: 45, max: Infinity },
+  ];
+  const tierCounts = tiers.map(t =>
+    c.branches.filter(b => b.avgH >= t.min && b.avgH < t.max).length
+  );
+  const tierBranches = tiers.map(t =>
+    c.branches.filter(b => b.avgH >= t.min && b.avgH < t.max).map(b => b.branch)
+  );
+
+  // Side-stats for Donut 1
+  const tierStatsEl = document.getElementById('tmTierStats');
+  if (tierStatsEl) {
+    tierStatsEl.innerHTML = tiers.map((t, i) => `
+      <div style="background:var(--card2);border-radius:8px;padding:8px 10px;border-right:3px solid ${t.color}">
+        <div style="font-size:11px;font-weight:700;color:var(--text)">${t.label}</div>
+        <div style="font-size:20px;font-weight:900;color:var(--text);line-height:1.2">${tierCounts[i]}</div>
+        <div style="font-size:10px;color:var(--text2)">סניפים</div>
+      </div>`).join('');
+  }
+
+  tmMkChart('tmChartTierDonut', {
+    type: 'doughnut',
+    data: {
+      labels: tiers.map(t => t.label),
+      datasets: [{ data: tierCounts, backgroundColor: tiers.map(t => t.color), borderWidth: 0, hoverOffset: 10 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#8B949E', font: { size: 10 }, boxWidth: 12, padding: 10 } },
+        tooltip: { callbacks: {
+          label: ctx => ` ${ctx.label}: ${ctx.raw} סניפים`,
+          afterLabel: (ctx) => tierBranches[ctx.dataIndex].slice(0,3).join(', ') + (tierBranches[ctx.dataIndex].length > 3 ? '...' : '')
+        }}
+      }
+    }
+  });
+
+  // ── Donut 2: Time breakdown (F / G-F / H-G) ──────────────
+  const avgF = c.avgF, avgG = c.avgG, avgH = c.avgH;
+  // F = advance call (buffer before pickup)
+  // G - F = additional wait beyond advance call (up to pickup)
+  // H - G = courier ride (pickup → delivery)
+  const seg1 = Math.max(0, parseFloat(avgF.toFixed(1)));           // קריאה לוולט
+  const seg2 = Math.max(0, parseFloat((avgG - avgF).toFixed(1)));  // המתנה לאיסוף
+  const seg3 = Math.max(0, parseFloat((avgH - avgG).toFixed(1)));  // נסיעת שליח
+  const totalSeg = seg1 + seg2 + seg3;
+
+  const breakdownSubEl = document.getElementById('tmDonutBreakdownSub');
+  if (breakdownSubEl) breakdownSubEl.textContent = `סה"כ: ${fmtTime(avgH)} מקריאה עד מסירה`;
+
+  const brkLabels = [tmColF, 'המתנה לאיסוף (G−F)', 'נסיעת שליח (H−G)'];
+  const brkData   = [seg1, seg2, seg3];
+  const brkColors = ['rgba(0,157,224,.85)', 'rgba(227,179,65,.85)', 'rgba(137,87,229,.85)'];
+
+  const brkStatsEl = document.getElementById('tmBreakdownStats');
+  if (brkStatsEl) {
+    brkStatsEl.innerHTML = brkLabels.map((lbl, i) => {
+      const pct = totalSeg ? ((brkData[i]/totalSeg)*100).toFixed(0) : 0;
+      return `
+        <div style="background:var(--card2);border-radius:8px;padding:8px 10px;border-right:3px solid ${brkColors[i]}">
+          <div style="font-size:10px;color:var(--text2);margin-bottom:2px">${lbl}</div>
+          <div style="font-size:18px;font-weight:900;color:var(--text);line-height:1.2">${fmtTime(brkData[i])}</div>
+          <div style="font-size:10px;color:var(--text3)">${pct}% מהסה"כ</div>
+        </div>`;
+    }).join('');
+  }
+
+  tmMkChart('tmChartBreakdownDonut', {
+    type: 'doughnut',
+    data: {
+      labels: brkLabels,
+      datasets: [{ data: brkData, backgroundColor: brkColors, borderWidth: 0, hoverOffset: 10 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { position: 'bottom', labels: { color: '#8B949E', font: { size: 10 }, boxWidth: 12, padding: 10 } },
+        tooltip: { callbacks: {
+          label: ctx => ` ${ctx.label}: ${fmtTime(ctx.raw)}`,
+          afterLabel: ctx => `${totalSeg ? ((ctx.raw/totalSeg)*100).toFixed(1) : 0}% מהסה"כ`
+        }}
+      }
+    }
+  });
+
+  // ── Line 1: Daily + 7-day rolling average ─────────────────
+  const sortedDates = Object.keys(c.byDate).sort((a, b) => dateToSortKey(a) - dateToSortKey(b));
+  tmBuildRollingLine(c, sortedDates);
+
+  // ── Line 2: Top-5 branches by orders, trend over time ─────
+  tmBuildBranchLine(c, sortedDates);
+
+  // Trend over time (all 3 metrics)
+  tmMkChart('tmChartTrend', {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: [
+        { label: tmColF, data: sortedDates.map(d => parseFloat(c.byDate[d].avgF.toFixed(1))), borderColor: 'rgba(0,157,224,1)', backgroundColor: 'rgba(0,157,224,.15)', tension: 0.3, fill: true, pointRadius: 3 },
+        { label: tmColG, data: sortedDates.map(d => parseFloat(c.byDate[d].avgG.toFixed(1))), borderColor: 'rgba(227,179,65,1)', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+        { label: tmColH, data: sortedDates.map(d => parseFloat(c.byDate[d].avgH.toFixed(1))), borderColor: 'rgba(137,87,229,1)', backgroundColor: 'transparent', tension: 0.3, pointRadius: 3 },
+      ]
+    },
+    options: {
+      ...TM_CHART_DEFAULTS,
+      plugins: {
+        legend: { labels: { color: '#8B949E', font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtTime(ctx.raw) } }
+      }
+    }
+  });
+
+  // Orders over time
+  tmMkChart('tmChartOrders', {
+    type: 'bar',
+    data: {
+      labels: sortedDates,
+      datasets: [
+        { label: 'הזמנות', data: sortedDates.map(d => c.byDate[d].orders), backgroundColor: 'rgba(46,160,67,.8)', borderRadius: 4 }
+      ]
+    },
+    options: TM_CHART_DEFAULTS
+  });
+}
+
+// ── Line metric state ─────────────────────────────────────
+let tmLineMetric = 'avgF';
+function tmSetLineMetric(m) {
+  tmLineMetric = m;
+  ['tmLineMetF','tmLineMetG','tmLineMetH'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  const map = { avgF:'tmLineMetF', avgG:'tmLineMetG', avgH:'tmLineMetH' };
+  document.getElementById(map[m])?.classList.add('active');
+  // Rebuild rolling line with cached data
+  const viewData = tmGetViewData();
+  const c = tmCompute(viewData);
+  const sortedDates = Object.keys(c.byDate).sort((a,b) => dateToSortKey(a)-dateToSortKey(b));
+  tmBuildRollingLine(c, sortedDates);
+}
+
+function tmBuildRollingLine(c, sortedDates) {
+  if (!sortedDates.length) return;
+  const rawVals = sortedDates.map(d => parseFloat((c.byDate[d][tmLineMetric] || 0).toFixed(1)));
+
+  // 7-day rolling average
+  const rollingAvg = rawVals.map((_, i) => {
+    const window = rawVals.slice(Math.max(0, i - 6), i + 1);
+    const valid  = window.filter(v => v > 0);
+    return valid.length ? parseFloat((valid.reduce((a,b) => a+b,0) / valid.length).toFixed(1)) : null;
+  });
+
+  // Target line (30 min for H, 10 for G, 8 for F)
+  const targets = { avgF: 8, avgG: 10, avgH: 30 };
+  const target  = targets[tmLineMetric];
+  const metricColors = { avgF:'rgba(0,157,224,1)', avgG:'rgba(227,179,65,1)', avgH:'rgba(137,87,229,1)' };
+  const metricColorsDim = { avgF:'rgba(0,157,224,.25)', avgG:'rgba(227,179,65,.25)', avgH:'rgba(137,87,229,.25)' };
+  const metricNames = { avgF: tmColF, avgG: tmColG, avgH: tmColH };
+
+  tmMkChart('tmChartRollingLine', {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: [
+        {
+          label: 'ערך יומי',
+          data: rawVals,
+          borderColor: metricColorsDim[tmLineMetric].replace('.25','1'),
+          backgroundColor: 'transparent',
+          tension: 0.1, borderWidth: 1.5,
+          pointRadius: 3, pointBackgroundColor: metricColors[tmLineMetric],
+          borderDash: []
+        },
+        {
+          label: 'ממוצע נע 7 ימים',
+          data: rollingAvg,
+          borderColor: metricColors[tmLineMetric],
+          backgroundColor: metricColorsDim[tmLineMetric],
+          tension: 0.4, borderWidth: 3,
+          pointRadius: 0, fill: true
+        },
+        {
+          label: `יעד (${target} דק)`,
+          data: sortedDates.map(() => target),
+          borderColor: 'rgba(218,54,51,.6)',
+          backgroundColor: 'transparent',
+          tension: 0, borderWidth: 1.5, borderDash: [6,3],
+          pointRadius: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#8B949E', font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtTime(ctx.raw) } }
+      },
+      scales: {
+        x: { ticks: { color: '#8B949E', maxRotation: 45 }, grid: { color: 'rgba(48,54,61,.5)' } },
+        y: {
+          ticks: { color: '#8B949E', callback: v => fmtTime(v) },
+          grid: { color: 'rgba(48,54,61,.5)' }
+        }
+      }
+    }
+  });
+}
+
+function tmBuildBranchLine(c, sortedDates) {
+  if (!sortedDates.length || !c.branches.length) return;
+
+  // Top 5 branches by total orders
+  const top5 = [...c.branches].sort((a,b) => b.orders - a.orders).slice(0,5).map(b => b.branch);
+  const branchColors = [
+    'rgba(0,157,224,1)','rgba(46,160,67,1)','rgba(227,179,65,1)',
+    'rgba(137,87,229,1)','rgba(218,54,51,1)'
+  ];
+
+  // Build per-branch per-date data from raw tmAllData (filtered same as view)
+  const viewData = tmGetViewData();
+  const branchDateMap = {};
+  viewData.forEach(r => {
+    if (!top5.includes(r.branch)) return;
+    const key = r.branch + '||' + r.dateStr;
+    if (!branchDateMap[key]) branchDateMap[key] = { hVals: [] };
+    if (r.avgH > 0) branchDateMap[key].hVals.push(r.avgH);
+  });
+
+  const datasets = top5.map((branch, i) => ({
+    label: branch,
+    data: sortedDates.map(d => {
+      const entry = branchDateMap[branch + '||' + d];
+      if (!entry || !entry.hVals.length) return null;
+      return parseFloat((entry.hVals.reduce((a,b)=>a+b,0) / entry.hVals.length).toFixed(1));
+    }),
+    borderColor: branchColors[i],
+    backgroundColor: 'transparent',
+    tension: 0.3, borderWidth: 2,
+    pointRadius: 4, pointHoverRadius: 6,
+    spanGaps: true
+  }));
+
+  const top5Sub = document.getElementById('tmTop5Sub');
+  if (top5Sub) top5Sub.textContent = `קריאה עד מסירה (${tmColH})`;
+
+  tmMkChart('tmChartBranchLine', {
+    type: 'line',
+    data: { labels: sortedDates, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#8B949E', font: { size: 10 }, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtTime(ctx.raw) } }
+      },
+      scales: {
+        x: { ticks: { color: '#8B949E', maxRotation: 45 }, grid: { color: 'rgba(48,54,61,.5)' } },
+        y: { ticks: { color: '#8B949E', callback: v => fmtTime(v) }, grid: { color: 'rgba(48,54,61,.5)' } }
+      }
+    }
+  });
+}
+
+// ── TRENDS ────────────────────────────────────────────────
+function tmSetTrendMode(mode) {
+  tmTrendMode = mode;
+  document.getElementById('tmTrendDvD')?.classList.toggle('active', mode === 'dvd');
+  document.getElementById('tmTrendWvW')?.classList.toggle('active', mode === 'wvw');
+  tmBuildTrendChart();
+}
+
+function tmSetTrendMetric(metric) {
+  tmTrendMetric = metric;
+  ['tmTrMetF', 'tmTrMetG', 'tmTrMetH', 'tmTrMetOrders'].forEach(id => document.getElementById(id)?.classList.remove('active'));
+  const map = { avgF: 'tmTrMetF', avgG: 'tmTrMetG', avgH: 'tmTrMetH', orders: 'tmTrMetOrders' };
+  document.getElementById(map[metric])?.classList.add('active');
+  tmBuildTrendChart();
+}
+
+function tmBuildTrendChart() {
+  const metricLabel = { avgF: tmColF, avgG: tmColG, avgH: tmColH, orders: 'הזמנות' };
+  const isTimeMetric = tmTrendMetric !== 'orders';
+  const tooltipLabel = isTimeMetric ? ctx => metricLabel[tmTrendMetric] + ': ' + fmtTime(ctx.raw) : ctx => metricLabel[tmTrendMetric] + ': ' + ctx.raw;
+
+  // Build daily aggregated data for any date range
+  function getDayMap(data) {
+    const m = {};
+    data.forEach(r => {
+      if (!m[r.dateStr]) m[r.dateStr] = { orders: 0, fVals: [], gVals: [], hVals: [] };
+      const d = m[r.dateStr];
+      d.orders += r.orders;
+      if (r.avgF > 0) d.fVals.push(r.avgF);
+      if (r.avgG > 0) d.gVals.push(r.avgG);
+      if (r.avgH > 0) d.hVals.push(r.avgH);
+    });
+    Object.values(m).forEach(d => {
+      d.avgF = d.fVals.length ? d.fVals.reduce((a, b) => a + b) / d.fVals.length : 0;
+      d.avgG = d.gVals.length ? d.gVals.reduce((a, b) => a + b) / d.gVals.length : 0;
+      d.avgH = d.hVals.length ? d.hVals.reduce((a, b) => a + b) / d.hVals.length : 0;
+    });
+    return m;
+  }
+
+  function getVal(dayObj) {
+    if (!dayObj) return 0;
+    return parseFloat((dayObj[tmTrendMetric] || 0).toFixed(1));
+  }
+
+  if (tmTrendMode === 'dvd') {
+    // Day vs Same Day Last Week
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const [cwFrom, cwTo] = presetRange('curweek');
+    const [pwFrom, pwTo] = presetRange('prevweek');
+
+    const cwMap = getDayMap(tmAllData.filter(r => inRange(r.dateStr, cwFrom, cwTo)));
+    const pwMap = getDayMap(tmAllData.filter(r => inRange(r.dateStr, pwFrom, pwTo)));
+
+    const cwDates = Object.keys(cwMap).sort((a, b) => dateToSortKey(a) - dateToSortKey(b));
+    const pwDates = Object.keys(pwMap).sort((a, b) => dateToSortKey(a) - dateToSortKey(b));
+
+    const lbl = document.getElementById('tmTrendRangeLabel');
+    if (lbl) lbl.textContent = cwFrom + ' — ' + cwTo + '  vs  ' + pwFrom + ' — ' + pwTo;
+
+    tmMkChart('tmChartTrendComp', {
+      type: 'bar',
+      data: {
+        labels: cwDates,
+        datasets: [
+          { label: 'שבוע נוכחי', data: cwDates.map(d => getVal(cwMap[d])), backgroundColor: 'rgba(0,157,224,.8)', borderRadius: 4 },
+          { label: 'שבוע קודם',  data: pwDates.slice(0, cwDates.length).map(d => getVal(pwMap[d])), backgroundColor: 'rgba(227,179,65,.5)', borderRadius: 4, borderWidth: 1, borderColor: 'rgba(227,179,65,.8)' }
+        ]
+      },
+      options: {
+        ...TM_CHART_DEFAULTS,
+        plugins: { legend: { labels: { color: '#8B949E', font: { size: 11 } } }, tooltip: { callbacks: { label: tooltipLabel } } }
+      }
+    });
+
+  } else {
+    // Week vs Week — show per-week aggregated data
+    // Group all data by week (week start date as label)
+    const weekMap = {};
+    tmAllData.forEach(r => {
+      const d = dmy2date(r.dateStr);
+      if (!d) return;
+      const ws = weekStart(d);
+      const wKey = date2dmy(ws);
+      if (!weekMap[wKey]) weekMap[wKey] = { orders: 0, fVals: [], gVals: [], hVals: [] };
+      const w = weekMap[wKey];
+      w.orders += r.orders;
+      if (r.avgF > 0) w.fVals.push(r.avgF);
+      if (r.avgG > 0) w.gVals.push(r.avgG);
+      if (r.avgH > 0) w.hVals.push(r.avgH);
+    });
+    Object.values(weekMap).forEach(w => {
+      w.avgF = w.fVals.length ? w.fVals.reduce((a, b) => a + b) / w.fVals.length : 0;
+      w.avgG = w.gVals.length ? w.gVals.reduce((a, b) => a + b) / w.gVals.length : 0;
+      w.avgH = w.hVals.length ? w.hVals.reduce((a, b) => a + b) / w.hVals.length : 0;
+    });
+    const weeks = Object.keys(weekMap).sort((a, b) => dateToSortKey(a) - dateToSortKey(b));
+    const lbl = document.getElementById('tmTrendRangeLabel');
+    if (lbl) lbl.textContent = 'מציג ' + weeks.length + ' שבועות';
+
+    // Week-over-week delta bars
+    const deltaData = [], deltaColors = [], deltaLabels = [];
+    for (let i = 1; i < weeks.length; i++) {
+      const curr = weekMap[weeks[i]][tmTrendMetric] || 0;
+      const prev = weekMap[weeks[i - 1]][tmTrendMetric] || 0;
+      const pct = prev ? parseFloat(((curr - prev) / Math.abs(prev) * 100).toFixed(1)) : 0;
+      deltaData.push(pct);
+      deltaLabels.push(weeks[i]);
+      const isGood = isTimeMetric ? pct <= 0 : pct >= 0;
+      deltaColors.push(isGood ? 'rgba(46,160,67,.8)' : 'rgba(218,54,51,.8)');
+    }
+
+    tmMkChart('tmChartTrendComp', {
+      type: 'bar',
+      data: {
+        labels: deltaLabels,
+        datasets: [{
+          label: '% שינוי שבועי',
+          data: deltaData,
+          backgroundColor: deltaColors,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        ...TM_CHART_DEFAULTS,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ctx.raw + '%' } }
+        },
+        scales: {
+          x: { ticks: { color: '#8B949E', maxRotation: 45 }, grid: { color: 'rgba(48,54,61,.5)' } },
+          y: { ticks: { color: '#8B949E', callback: v => v + '%' }, grid: { color: 'rgba(48,54,61,.5)' } }
+        }
+      }
+    });
+  }
+}
+
+// ── MONTHLY CUMULATIVE ────────────────────────────────────
+function tmInitMonthButtons() {
+  const months = tmGetMonths();
+  const container = document.getElementById('tmMonthButtons');
+  if (!container) return;
+  container.innerHTML = months.map(m =>
+    `<button class="month-btn ${m === tmSelectedMonth ? 'active' : ''}" onclick="tmSelectMonth('${m}')">${m}</button>`
+  ).join('');
+}
+
+function tmGetMonths() {
+  const s = new Set();
+  tmAllData.forEach(r => {
+    const p = r.dateStr.split('/');
+    // Include months that have data rows (allow orders=0 rows as they still represent time data)
+    if (p.length === 3) s.add(p[1].padStart(2,'0') + '/' + p[2]);
+  });
+  // Sort: most recent first — by year DESC, then by month DESC
+  return [...s].sort((a, b) => {
+    const [am, ay] = a.split('/').map(Number);
+    const [bm, by] = b.split('/').map(Number);
+    if (ay !== by) return by - ay;   // year descending
+    return bm - am;                  // month descending (higher month = more recent)
+  });
+}
+
+function tmSelectMonth(m) {
+  tmSelectedMonth = m;
+  document.querySelectorAll('.month-btn').forEach(btn => btn.classList.toggle('active', btn.textContent === m));
+  tmBuildMonthly();
+}
+
+function tmBuildMonthly() {
+  if (!tmSelectedMonth) return;
+  const [selM, selY] = tmSelectedMonth.split('/');
+  const selMPad = selM.padStart(2,'0');
+
+  // ✅ FIX: Filter by EXACT month+year match (padded months)
+  const currRows = tmAllData.filter(r => {
+    const p = r.dateStr.split('/');
+    return p.length === 3 && p[1].padStart(2,'0') === selMPad && p[2] === selY;
+  });
+
+  // Guard: if no data at all for selected month, show clear message
+  if (!currRows.length) {
+    const infoEl = document.getElementById('tmMonthCompareInfo');
+    if (infoEl) infoEl.innerHTML = `<span style="color:var(--orange)">⚠️ אין נתונים לחודש ${tmSelectedMonth}. בחר חודש אחר מהרשימה למעלה.</span>`;
+    document.getElementById('tmMonthlyTbody').innerHTML = '<tr><td colspan="7" class="nodata-msg">אין נתונים לחודש זה</td></tr>';
+    document.getElementById('tmMonthlyTfoot').innerHTML = '';
+    document.getElementById('tmMonthlyKpiRow').innerHTML = '';
+    tmDestroyChart('tmChartMonthly');
+    return;
+  }
+
+  // Previous month — find the most recent previous month that HAS DATA in tmAllData
+  const allMonths = tmGetMonths(); // sorted most-recent first
+  const selIdx = allMonths.indexOf(tmSelectedMonth);
+  // prev = previous month in the data list (the one right after current in desc order)
+  const prevMonthInData = (selIdx >= 0 && selIdx + 1 < allMonths.length) ? allMonths[selIdx + 1] : null;
+
+  // Calendar previous month (for label)
+  let prevM = parseInt(selMPad) - 1, prevY = parseInt(selY);
+  if (prevM === 0) { prevM = 12; prevY--; }
+  const prevMStr = prevM.toString().padStart(2, '0');
+  const prevYStr = prevY.toString();
+
+  // ✅ FIX: Use actual previous month from data if it exists, else calendar previous
+  let actualPrevM = prevMStr, actualPrevY = prevYStr;
+  if (prevMonthInData) {
+    const [pm, py] = prevMonthInData.split('/');
+    actualPrevM = pm.padStart(2,'0');
+    actualPrevY = py;
+  }
+
+  // Find same day-of-month range in previous month that corresponds to available days in current month
+  const currDays = [...new Set(currRows.map(r => parseInt(r.dateStr.split('/')[0])))];
+  const maxDay = currDays.length ? Math.max(...currDays) : 31;
+
+  // ✅ FIX: Use actualPrevM/actualPrevY to find real previous month rows
+  const prevRows = tmAllData.filter(r => {
+    const p = r.dateStr.split('/');
+    if (p.length !== 3) return false;
+    if (p[1].padStart(2,'0') !== actualPrevM || p[2] !== actualPrevY) return false;
+    return parseInt(p[0]) <= maxDay; // same day range
+  });
+
+  // Compute stats
+  const curr = tmCompute(currRows);
+  const prev = tmCompute(prevRows);
+  const prevBMap = {};
+  prev.branches.forEach(b => prevBMap[b.branch] = b);
+
+  // ✅ FIX: Show actual prev month label
+  const prevLabel = prevMonthInData || `${prevMStr}/${prevYStr}`;
+  const prevHasData = prevRows.length > 0;
+
+  // Update compare info box
+  const infoEl = document.getElementById('tmMonthCompareInfo');
+  if (infoEl) {
+    infoEl.innerHTML = `
+      <strong>📅 ${tmSelectedMonth}</strong> — 
+      ימים: ${currDays.length} | הזמנות: ${curr.totalOrders.toLocaleString('he-IL')} | 
+      ממוצע ${tmColF}: ${fmtTime(curr.avgF)} 
+      &nbsp;|&nbsp;
+      <strong>📅 ${prevLabel} (עד יום ${maxDay})</strong> — 
+      ${prevHasData 
+        ? `הזמנות: ${prev.totalOrders.toLocaleString('he-IL')} | ממוצע ${tmColF}: ${fmtTime(prev.avgF)}`
+        : '<span style="color:var(--orange)">⚠️ אין נתוני השוואה לחודש הקודם</span>'
+      }
+    `;
+  }
+
+  // Monthly KPI row
+  const kpiEl = document.getElementById('tmMonthlyKpiRow');
+  if (kpiEl) {
+    function mkKpi(label, currV, prevV, fmtFn, invertGood = false) {
+      const pct = prevV ? ((currV - prevV) / Math.abs(prevV) * 100) : null;
+      const isGood = pct !== null ? (invertGood ? pct <= 0 : pct >= 0) : null;
+      const chgCls = pct === null ? 'flat' : (isGood ? (invertGood ? 'good-down' : 'up') : 'down');
+      const chgTxt = pct !== null ? `${pct >= 0 ? '▲' : '▼'} ${Math.abs(pct).toFixed(1)}%` : '—';
+      return `<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 14px">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:4px">${label}</div>
+        <div style="font-size:22px;font-weight:900">${fmtFn(currV)}</div>
+        <div style="font-size:11px;color:var(--text3)">קודם: ${fmtFn(prevV)}</div>
+        <span class="kpi-change ${chgCls}">${chgTxt}</span>
+      </div>`;
+    }
+    kpiEl.innerHTML =
+      mkKpi('סה"כ הזמנות', curr.totalOrders, prev.totalOrders, v => v.toLocaleString('he-IL')) +
+      mkKpi(tmColF, curr.avgF, prev.avgF, fmtTime, true) +
+      mkKpi(tmColG, curr.avgG, prev.avgG, fmtTime, true) +
+      mkKpi(tmColH, curr.avgH, prev.avgH, fmtTime, true);
+  }
+
+  // Monthly table
+  let html = '';
+  const allBranches = [...new Set([...curr.branches.map(b => b.branch), ...prev.branches.map(b => b.branch)])];
+  allBranches.sort().forEach(name => {
+    const cb = curr.branches.find(b => b.branch === name) || { branch: name, orders: 0, avgF: 0, avgG: 0, avgH: 0 };
+    const pb = prevBMap[name];
+    const fPct = pb && pb.avgF ? ((cb.avgF - pb.avgF) / pb.avgF * 100) : null;
+    const fChgCls = fPct === null ? 'cmp-badge-flat' : (fPct <= 0 ? 'cmp-badge-pos' : 'cmp-badge-neg');
+    const fChgTxt = fPct !== null ? `${fPct >= 0 ? '▲' : '▼'} ${Math.abs(fPct).toFixed(1)}%` : '—';
+    html += `<tr>
+      <td><strong>${name}</strong></td>
+      <td>${cb.orders.toLocaleString('he-IL')}</td>
+      <td>${timePill(cb.avgF)}</td>
+      <td>${timePill(cb.avgG)}</td>
+      <td>${timePill(cb.avgH)}</td>
+      <td>${pb ? timePill(pb.avgF) : '<span style="color:var(--text3)">—</span>'}</td>
+      <td><span class="${fChgCls}">${fChgTxt}</span></td>
+    </tr>`;
+  });
+
+  // Total row
+  const totPrevF = prev.avgF;
+  const totFPct = totPrevF ? ((curr.avgF - totPrevF) / totPrevF * 100) : null;
+  const totFChgCls = totFPct === null ? 'cmp-badge-flat' : (totFPct <= 0 ? 'cmp-badge-pos' : 'cmp-badge-neg');
+  const totFChgTxt = totFPct !== null ? `${totFPct >= 0 ? '▲' : '▼'} ${Math.abs(totFPct).toFixed(1)}%` : '—';
+
+  document.getElementById('tmMonthlyTbody').innerHTML = html || '<tr><td colspan="7" class="nodata-msg">אין נתונים לחודש זה</td></tr>';
+  document.getElementById('tmMonthlyTfoot').innerHTML = `<tr class="total-row">
+    <td>🔢 סה"כ</td>
+    <td>${curr.totalOrders.toLocaleString('he-IL')}</td>
+    <td>${timePill(curr.avgF)}</td>
+    <td>${timePill(curr.avgG)}</td>
+    <td>${timePill(curr.avgH)}</td>
+    <td>${timePill(totPrevF)}</td>
+    <td><span class="${totFChgCls}">${totFChgTxt}</span></td>
+  </tr>`;
+
+  // Monthly chart: current vs previous month by branch
+  const chartBranches = allBranches.slice(0, 15);
+  const currF = chartBranches.map(n => { const b = curr.branches.find(b => b.branch === n); return b ? parseFloat(b.avgF.toFixed(1)) : 0; });
+  const prevF = chartBranches.map(n => { const b = prev.branches.find(b => b.branch === n); return b ? parseFloat(b.avgF.toFixed(1)) : 0; });
+
+  tmMkChart('tmChartMonthly', {
+    type: 'bar',
+    data: {
+      labels: chartBranches,
+      datasets: [
+        { label: tmSelectedMonth, data: currF, backgroundColor: 'rgba(0,157,224,.8)', borderRadius: 4 },
+        { label: `${prevLabel} (עד יום ${maxDay})`, data: prevF, backgroundColor: 'rgba(227,179,65,.5)', borderRadius: 4, borderWidth: 1, borderColor: 'rgba(227,179,65,.7)' }
+      ]
+    },
+    options: {
+      ...TM_CHART_DEFAULTS,
+      plugins: {
+        legend: { labels: { color: '#8B949E', font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtTime(ctx.raw) } }
+      }
+    }
+  });
+}
+
+// ── INSIGHTS (times) ──────────────────────────────────────
+function tmBuildInsights(c, p) {
+  if (!c.branches.length) { document.getElementById('tmInsightsGrid').innerHTML = ''; return; }
+
+  const bestBranch  = [...c.branches].filter(b => b.avgF > 0).sort((a, b) => a.avgF - b.avgF)[0];
+  const worstBranch = [...c.branches].filter(b => b.avgF > 0).sort((a, b) => b.avgF - a.avgF)[0];
+  const mostOrders  = [...c.branches].sort((a, b) => b.orders - a.orders)[0];
+  const leastOrders = [...c.branches].sort((a, b) => a.orders - b.orders)[0];
+
+  // Trend vs compare
+  let trendInsight = { icon: '📊', title: 'השוואה', text: 'בחר טווח השוואה לצפייה בשינויים' };
+  if (p && p.avgF > 0) {
+    const pct = ((c.avgF - p.avgF) / p.avgF * 100);
+    const improved = pct < 0;
+    trendInsight = {
+      icon: improved ? '✅' : '⚠️',
+      title: `זמן ${tmColF} ${improved ? 'שיפר' : 'הורע'}`,
+      text: `${Math.abs(pct).toFixed(1)}% ${improved ? 'ירידה (שיפור)' : 'עלייה'} לעומת תקופת ההשוואה`
+    };
+  }
+
+  // Avg vs threshold
+  const overallF = c.avgF;
+  const targetInsight = {
+    icon: overallF <= 30 ? '🟢' : overallF <= 45 ? '🟡' : '🔴',
+    title: `ממוצע כולל ${tmColF}`,
+    text: `${fmtTime(overallF)} — ${overallF <= 30 ? 'מצוין' : overallF <= 45 ? 'בסדר' : 'דרוש שיפור'} (יעד: עד 30 דקות)`
+  };
+
+  // Branches above threshold
+  const slowBranches = c.branches.filter(b => b.avgF > 45);
+  const slowInsight = {
+    icon: '🚨',
+    title: 'סניפים איטיים',
+    text: slowBranches.length
+      ? `${slowBranches.length} סניפים מעל 45 דק': ${slowBranches.slice(0, 2).map(b => b.branch).join(', ')}${slowBranches.length > 2 ? '...' : ''}`
+      : 'כל הסניפים בטווח סביר (מתחת ל-45 דקות)'
+  };
+
+  const insights = [
+    bestBranch  ? { icon: '🏆', title: 'מהיר ביותר', text: `${bestBranch.branch}: ${fmtTime(bestBranch.avgF)}` } : null,
+    worstBranch ? { icon: '🐢', title: 'איטי ביותר', text: `${worstBranch.branch}: ${fmtTime(worstBranch.avgF)}` } : null,
+    targetInsight,
+    trendInsight,
+    slowInsight,
+    mostOrders  ? { icon: '📦', title: 'הכי עמוס', text: `${mostOrders.branch}: ${mostOrders.orders.toLocaleString('he-IL')} הזמנות` } : null,
+  ].filter(Boolean).slice(0, 4);
+
+  document.getElementById('tmInsightsGrid').innerHTML = insights.map(ins =>
+    `<div class="tm-insight-card">
+      <div class="tm-insight-icon">${ins.icon}</div>
+      <div><div class="tm-insight-title">${ins.title}</div>
+      <div class="tm-insight-text">${ins.text}</div></div>
+    </div>`
+  ).join('');
+}
+
+// ── Export ────────────────────────────────────────────────
+function tmExportCSV() {
+  const viewData = tmGetViewData();
+  const c = tmCompute(viewData);
+  const rows = [['סניף', 'הזמנות', tmColF, tmColG, tmColH]];
+  c.branches.forEach(b => rows.push([b.branch, b.orders, b.avgF.toFixed(1), b.avgG.toFixed(1), b.avgH.toFixed(1)]));
+  const csv = rows.map(r => r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'times_' + (tmViewFrom || 'all') + '.csv';
+  a.click();
+}
+
+// ── Utils ─────────────────────────────────────────────────
+function tmShowLoading(v) { document.getElementById('tmLoadingOverlay')?.classList.toggle('show', v); }
+
+// ── Init times ────────────────────────────────────────────
+function tmInit() {
+  tmAllData = tmLoadLs();
+  if (tmAllData.length) {
+    tmAutoSetView();
+    // labels already set in parse; restore them from stored data
+  }
+}
+tmInit();
+
+</script>
+
+</div><!-- /ordersApp -->
+
+<!-- ═══════════════════════════════════════════════════
+     TIMES APP
+════════════════════════════════════════════════════ -->
+<div id="timesApp">
+
+  <!-- Loading overlay (times) -->
+  <div class="loading-overlay" id="tmLoadingOverlay">
+    <div class="spinner"></div>
+    <div style="color:var(--text2);font-size:13px">טוען נתוני זמנים...</div>
+  </div>
+
+  <!-- Header (times) -->
+  <header>
+    <div class="hdr-brand">
+      <button class="back-btn" onclick="showApp('landing')">← חזור</button>
+      &nbsp;
+      <span class="logo">⏱️</span>
+      <div>
+        <h1>דשבורד זמני שילוח</h1>
+        <small id="tmHdrSub">Domino's Pizza — Delivery Times</small>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <span id="tmColNames" style="font-size:11px;color:var(--text2);"></span>
+      <button class="btn btn-primary" onclick="tmLoadFromSheets()"
+        style="background:var(--green-dim);border-color:var(--green);color:var(--green)">
+        <span class="dot" id="tmSyncDot"></span>🔄 סנכרן גיליון 2
+      </button>
+      <button class="btn btn-secondary" onclick="document.getElementById('tmFileInput').click()">
+        📂 טען קובץ ידני
+      </button>
+      <input type="file" id="tmFileInput" accept=".xlsx,.xls,.csv" hidden onchange="tmLoadFile(this)">
+      <button class="btn btn-secondary" id="tmColInfoBtn" onclick="tmShowColInfo()" style="display:none">
+        🔍 אבחון עמודות
+      </button>
+      <button class="btn btn-secondary" id="tmPreviewBtn" onclick="tmShowPreview()" style="display:none">
+        👁️ תצוגה מקדימה
+      </button>
+    </div>
+  </header>
+
+  <!-- Toast notification (times) -->
+  <div id="tmToast" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+    background:#1a3a1a;border:1px solid var(--green);color:var(--green);
+    padding:10px 20px;border-radius:8px;font-size:13px;z-index:9999;
+    max-width:90%;text-align:center"></div>
+
+  <div class="main">
+
+    <!-- DATE NAV (times) -->
+    <div class="date-nav" id="tmDateNav">
+      <span class="date-nav-title">📅 הצג:</span>
+      <div class="preset-btns">
+        <button class="preset-btn" id="tmPreYesterday" onclick="tmApplyPreset('yesterday')">📆 אתמול</button>
+        <button class="preset-btn" id="tmPreCurWeek"   onclick="tmApplyPreset('curweek')">📅 שבוע נוכחי</button>
+        <button class="preset-btn" id="tmPrePrevWeek"  onclick="tmApplyPreset('prevweek')">⏪ שבוע קודם</button>
+        <button class="preset-btn" id="tmPreAll"       onclick="tmApplyPreset('all')">🗂️ כל הנתונים</button>
+        <button class="preset-btn" id="tmPreCustom"    onclick="tmApplyPreset('custom')">🗓️ בחירה ידנית</button>
+      </div>
+      <div class="date-picker-wrap" id="tmCustomPickers" style="display:none">
+        <span style="font-size:11px;color:var(--text2)">מ-</span>
+        <input type="date" class="dp-input" id="tmDpFrom" onchange="tmOnCustomRange()">
+        <span class="date-picker-sep">—</span>
+        <span style="font-size:11px;color:var(--text2)">עד</span>
+        <input type="date" class="dp-input" id="tmDpTo" onchange="tmOnCustomRange()">
+      </div>
+      <span class="range-badge" id="tmRangeBadge" style="display:none"></span>
+      <div style="flex:1"></div>
+      <!-- Compare -->
+      <div class="date-nav-sep"></div>
+      <div class="compare-section">
+        <span class="compare-label">📊 השווה:</span>
+        <button class="compare-preset" id="tmCmpNone"     onclick="tmApplyCompare('')">ללא</button>
+        <button class="compare-preset" id="tmCmpYest"     onclick="tmApplyCompare('yesterday')">אתמול</button>
+        <button class="compare-preset" id="tmCmpPrevWeek" onclick="tmApplyCompare('prevweek')">שבוע קודם</button>
+        <button class="compare-preset" id="tmCmpCustom"   onclick="tmApplyCompare('custom')">בחירה…</button>
+        <input type="date" class="dp-input" id="tmDpCompare" style="display:none" onchange="tmOnCompareDate()">
+      </div>
+    </div>
+
+    <!-- BRANCH FILTER (times) -->
+    <div class="filter-bar" id="tmFilterBar">
+      <span class="fb-label">🔍 סניף:</span>
+      <select class="fb-select" id="tmFbBranch" onchange="tmApplyFilters()" style="min-width:180px">
+        <option value="">כל הסניפים</option>
+      </select>
+      <button class="fb-reset" onclick="tmResetFilters()">✕ אפס</button>
+      <span class="fb-count" id="tmFbCount"></span>
+    </div>
+
+    <!-- KPI CARDS (times) -->
+    <div class="tm-kpi-grid mb16" id="tmKpiGrid">
+      <div class="tm-kpi-card blue">
+        <div class="kpi-top"><span class="kpi-label">סה"כ הזמנות</span><span class="kpi-icon">📦</span></div>
+        <div class="kpi-value" id="tmKpiOrders">—</div>
+        <div class="kpi-sub">הזמנות בטווח</div>
+        <span class="kpi-change flat" id="tmKpiOrdersChg">—</span>
+      </div>
+      <div class="tm-kpi-card green">
+        <div class="kpi-top"><span class="kpi-label" id="tmLblF">זמן ממוצע F</span><span class="kpi-icon">⏱️</span></div>
+        <div class="tm-time-val" id="tmKpiF">—</div>
+        <div class="kpi-sub">ממוצע כלל הסניפים</div>
+        <span class="kpi-change flat" id="tmKpiFChg">—</span>
+      </div>
+      <div class="tm-kpi-card orange">
+        <div class="kpi-top"><span class="kpi-label" id="tmLblG">זמן ממוצע G</span><span class="kpi-icon">🕐</span></div>
+        <div class="tm-time-val" id="tmKpiG">—</div>
+        <div class="kpi-sub">ממוצע כלל הסניפים</div>
+        <span class="kpi-change flat" id="tmKpiGChg">—</span>
+      </div>
+      <div class="tm-kpi-card purple">
+        <div class="kpi-top"><span class="kpi-label" id="tmLblH">זמן ממוצע H</span><span class="kpi-icon">🚴</span></div>
+        <div class="tm-time-val" id="tmKpiH">—</div>
+        <div class="kpi-sub">ממוצע כלל הסניפים</div>
+        <span class="kpi-change flat" id="tmKpiHChg">—</span>
+      </div>
+    </div>
+
+    <!-- INSIGHTS (times) -->
+    <div class="tm-insights-grid mb16" id="tmInsightsGrid">
+      <!-- filled by JS -->
+    </div>
+
+    <!-- BRANCH TABLE (times) -->
+    <div class="chart-card mb16">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">📋 ביצועי זמנים לפי סניף</div>
+          <div class="chart-sub" id="tmTableSub">סה"כ לפי טווח הנבחר</div>
+        </div>
+        <button class="export-btn" onclick="tmExportCSV()">⬇️ ייצא CSV</button>
+      </div>
+      <div class="tm-branch-wrap">
+        <table class="tm-table">
+          <thead>
+            <tr>
+              <th onclick="tmSortBranch('branch')">סניף ↕</th>
+              <th onclick="tmSortBranch('orders')">הזמנות ↕</th>
+              <th id="thF" onclick="tmSortBranch('avgF')">— ↕</th>
+              <th id="thG" onclick="tmSortBranch('avgG')">— ↕</th>
+              <th id="thH" onclick="tmSortBranch('avgH')">— ↕</th>
+              <th>השוואה F</th>
+            </tr>
+          </thead>
+          <tbody id="tmBranchTbody">
+            <tr><td colspan="6" class="nodata-msg">⏳ טוען נתונים… לחץ על "סנכרן גיליון 2"</td></tr>
+          </tbody>
+          <tfoot id="tmBranchTfoot"></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <!-- CHARTS (times) -->
+    <div class="tm-charts-grid mb16">
+      <div class="tm-chart-section" style="grid-column:1/-1">
+        <div class="tm-chart-title">📊 ממוצע זמנים לפי סניף (Top 15)</div>
+        <div class="tm-chart-wrap tall"><canvas id="tmChartBranch"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ══ ROW 2: Donut charts ══ -->
+    <div class="tm-charts-grid mb16">
+      <!-- Donut 1: Speed-tier distribution -->
+      <div class="tm-chart-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div class="tm-chart-title" style="margin-bottom:0">🍩 התפלגות סניפים לפי מהירות מסירה</div>
+          <div id="tmDonutTierLegend" style="font-size:11px;color:var(--text2);"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center">
+          <div style="position:relative;height:240px"><canvas id="tmChartTierDonut"></canvas></div>
+          <div id="tmTierStats" style="min-width:130px;display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+      <!-- Donut 2: Time breakdown F/G/courier -->
+      <div class="tm-chart-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+          <div class="tm-chart-title" style="margin-bottom:0">🥧 פירוק זמן מסירה ממוצע</div>
+          <div id="tmDonutBreakdownSub" style="font-size:11px;color:var(--text2);"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center">
+          <div style="position:relative;height:240px"><canvas id="tmChartBreakdownDonut"></canvas></div>
+          <div id="tmBreakdownStats" style="min-width:130px;display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ROW 3: Line charts ══ -->
+    <div class="tm-charts-grid mb16">
+      <!-- Line 1: Daily + 7-day rolling avg -->
+      <div class="tm-chart-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <div class="tm-chart-title" style="margin-bottom:0">📈 מגמת זמנים + ממוצע נע 7 ימים</div>
+          <div style="display:flex;gap:5px">
+            <button class="preset-btn active" id="tmLineMetF"    onclick="tmSetLineMetric('avgF')">קריאה לוולט</button>
+            <button class="preset-btn"        id="tmLineMetG"    onclick="tmSetLineMetric('avgG')">עד איסוף</button>
+            <button class="preset-btn"        id="tmLineMetH"    onclick="tmSetLineMetric('avgH')">עד מסירה</button>
+          </div>
+        </div>
+        <div class="tm-chart-wrap tall"><canvas id="tmChartRollingLine"></canvas></div>
+      </div>
+      <!-- Line 2: Top-5 branches trend -->
+      <div class="tm-chart-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+          <div class="tm-chart-title" style="margin-bottom:0">🏪 טרנד זמן מסירה — Top 5 סניפים</div>
+          <span id="tmTop5Sub" style="font-size:11px;color:var(--text2)"></span>
+        </div>
+        <div class="tm-chart-wrap tall"><canvas id="tmChartBranchLine"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ══ ROW 4: original trend + orders ══ -->
+    <div class="tm-charts-grid mb16">
+      <div class="tm-chart-section">
+        <div class="tm-chart-title">📈 מגמת כל הזמנים לאורך זמן</div>
+        <div class="tm-chart-wrap"><canvas id="tmChartTrend"></canvas></div>
+      </div>
+      <div class="tm-chart-section">
+        <div class="tm-chart-title">📦 הזמנות לפי יום</div>
+        <div class="tm-chart-wrap"><canvas id="tmChartOrders"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ══ TRENDS SECTION ══ -->
+    <div class="tm-chart-section mb16" id="tmTrendsSection">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+        <div class="tm-chart-title" style="margin-bottom:0">📉 טרנדים והשוואות</div>
+        <div class="trend-mode-bar" style="margin-bottom:0">
+          <button class="trend-mode-btn active" id="tmTrendDvD" onclick="tmSetTrendMode('dvd')">יום מול יום שבוע שעבר</button>
+          <button class="trend-mode-btn" id="tmTrendWvW" onclick="tmSetTrendMode('wvw')">שבוע מול שבוע</button>
+        </div>
+      </div>
+      <div id="tmTrendRangeLabel" style="font-size:11px;color:var(--text2);margin-bottom:12px;"></div>
+      <!-- Metric selector -->
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="preset-btn active" id="tmTrMetF" onclick="tmSetTrendMetric('avgF')">זמן F</button>
+        <button class="preset-btn" id="tmTrMetG" onclick="tmSetTrendMetric('avgG')">זמן G</button>
+        <button class="preset-btn" id="tmTrMetH" onclick="tmSetTrendMetric('avgH')">זמן H</button>
+        <button class="preset-btn" id="tmTrMetOrders" onclick="tmSetTrendMetric('orders')">הזמנות</button>
+      </div>
+      <div class="tm-chart-wrap tall"><canvas id="tmChartTrendComp"></canvas></div>
+    </div>
+
+    <!-- ══ MONTHLY CUMULATIVE SECTION ══ -->
+    <div class="monthly-section mb16" id="tmMonthlySection">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px">
+        <div class="tm-chart-title" style="margin-bottom:0">📆 מצטבר חודשי לפי סניף</div>
+        <div class="monthly-month-select" id="tmMonthButtons" style="margin-bottom:0">
+          <!-- month buttons injected by JS -->
+        </div>
+      </div>
+      <div id="tmMonthCompareInfo" style="font-size:11px;color:var(--text2);margin-bottom:12px;background:var(--card2);border-radius:8px;padding:8px 12px;"></div>
+
+      <!-- Monthly KPI row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px" id="tmMonthlyKpiRow"></div>
+
+      <!-- Monthly branch table -->
+      <div class="tm-branch-wrap mb16">
+        <table class="tm-table">
+          <thead>
+            <tr>
+              <th>סניף</th>
+              <th>הזמנות</th>
+              <th id="tmMonthThF">זמן F</th>
+              <th id="tmMonthThG">זמן G</th>
+              <th id="tmMonthThH">זמן H</th>
+              <th>F החודש הקודם</th>
+              <th>שינוי F</th>
+            </tr>
+          </thead>
+          <tbody id="tmMonthlyTbody">
+            <tr><td colspan="7" class="nodata-msg">בחר חודש לצפייה</td></tr>
+          </tbody>
+          <tfoot id="tmMonthlyTfoot"></tfoot>
+        </table>
+      </div>
+      <!-- Monthly chart -->
+      <div class="tm-chart-wrap tall"><canvas id="tmChartMonthly"></canvas></div>
+    </div>
+
+  </div><!-- /main -->
+</div><!-- /timesApp -->
+
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDghWn4gmG43WNKwWuvQ6sPT58IZr2Gfts",
+  authDomain: "dominoswolt.firebaseapp.com",
+  projectId: "dominoswolt",
+  appId: "1:58824143071:web:0577a263ad1e6c30d8f96a"
+};
+
+const overlay = document.getElementById('authOverlay');
+const messageBox = document.getElementById('authMessage');
+const configWarning = document.getElementById('authConfigWarning');
+const userbar = document.getElementById('authUserbar');
+const avatar = document.getElementById('authAvatar');
+const userNameEl = document.getElementById('authUserName');
+const userEmailEl = document.getElementById('authUserEmail');
+const loginForm = document.getElementById('loginForm');
+const logoutBtn = document.getElementById('logoutBtn');
+
+const missingConfig = Object.values(firebaseConfig).some(v => String(v).startsWith('PASTE_YOUR_'));
+let auth = null;
+let appBooted = false;
+
+function setMessage(text, type = '') {
+  messageBox.textContent = text || '';
+  messageBox.className = 'auth-message' + (type ? ' ' + type : '');
+}
+
+function unlockApp(user) {
+  document.body.classList.remove('auth-locked');
+  overlay.classList.add('hidden');
+  userbar.classList.add('visible');
+  const fallbackName = user?.displayName || user?.email?.split('@')[0] || 'משתמש';
+  userNameEl.textContent = fallbackName;
+  userEmailEl.textContent = user?.email || 'מחובר';
+  if (user?.photoURL) {
+    avatar.innerHTML = `<img src="${user.photoURL}" alt="user">`;
+  } else {
+    avatar.textContent = fallbackName.trim().charAt(0).toUpperCase();
+  }
+  if (!appBooted && typeof window.dashboardInit === 'function') {
+    appBooted = true;
+    window.dashboardInit();
+  }
+}
+
+function lockApp() {
+  document.body.classList.add('auth-locked');
+  overlay.classList.remove('hidden');
+  userbar.classList.remove('visible');
+  avatar.textContent = 'U';
+  userNameEl.textContent = 'לא מחובר';
+  userEmailEl.textContent = '—';
+  if (typeof window.showApp === 'function') {
+    window.showApp('landing');
+  }
+}
+
+
+if (missingConfig) {
+  configWarning.classList.add('visible');
+  configWarning.innerHTML = 'חסרים פרטי Firebase. יש לעדכן את <b>firebaseConfig</b> בקובץ, ולהפעיל ב-Firebase רק <b>Email/Password</b> ללא הרשמה פתוחה דרך הממשק.';
+  setMessage('צריך להשלים את פרטי Firebase בקובץ.', 'error');
+  lockApp();
+} else {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
+
+  loginForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    try {
+      setMessage('מתחבר...', '');
+      await signInWithEmailAndPassword(auth, email, password);
+      setMessage('התחברת בהצלחה.', 'success');
+    } catch (error) {
+      console.error(error);
+      setMessage('ההתחברות נכשלה. בדוק אימייל וסיסמה.', 'error');
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    try {
+      await signOut(auth);
+      setMessage('התנתקת בהצלחה.');
+    } catch (error) {
+      console.error(error);
+      setMessage('לא ניתן היה להתנתק כרגע.', 'error');
+    }
+  });
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      unlockApp(user);
+      setMessage('מחובר בהצלחה.', 'success');
+    } else {
+      lockApp();
+      setMessage('התחבר כדי להמשיך.', '');
+    }
+  });
+}
+</script>
+
+</body>
+</html>
